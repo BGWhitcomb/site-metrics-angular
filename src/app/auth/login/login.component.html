@@ -1,1 +1,23 @@
-<p>login works!</p>
+<div class="login-container">
+    <h1>Railcar Inspection Tracker</h1>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <h2>Login</h2>
+        <p>Contact support@railcartracker.site for credentials.</p>
+        <div>
+            <label for="username">Username</label>
+            <input id="username" name="username" [(ngModel)]="username" required>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" [(ngModel)]="password" required>
+        </div>
+        <button class="cta-button" type="submit" [disabled]="loginForm.invalid">Login</button>
+    </form>
+    <p *ngIf="errorMessage" style="color:red;">{{ errorMessage }}</p>
+</div>
+<footer style="text-align: center; margin-top: 170px; background-color: #f1f1f1;">
+    <p>&copy; 2025 Railcar Tracker. All rights reserved.</p>
+    <p>Developed by Byron Whitcomb</p>
+    <p>Contact: support@railcartracker.site</p>
+</footer>
