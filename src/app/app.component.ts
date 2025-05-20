@@ -13,7 +13,10 @@ export class AppComponent {
   constructor(private router: Router) { }
 
   logout() {
+    if (confirm('Are you sure you want to log out?')) {
     localStorage.removeItem('token');
     this.router.navigate(['/login']);
+    }
   }
+
 }
