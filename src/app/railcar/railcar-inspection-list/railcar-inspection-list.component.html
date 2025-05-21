@@ -1,1 +1,31 @@
-<p>railcar-inspection-list works!</p>
+<div class="container">
+  <h2>Railcar Inspection List</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Car Mark</th>
+        <th>Car Number</th>
+        <th>Inspected Date</th>
+        <th>Repaired</th>
+        <th>Repair Description</th>
+        <th>Empty/Loaded</th>
+        <th>Bad Ordered</th>
+        <th>Bad Order Date</th>
+        <th>Bad Order Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let railcar of railcars">
+        <td>{{ railcar.carMark }}</td>
+        <td>{{ railcar.carNumber }}</td>
+        <td>{{ railcar.inspectedDate }}</td>
+        <td>{{ railcar.repaired ? 'Yes' : 'No' }}</td>
+        <td>{{ railcar.repairDescription }}</td>
+        <td>{{ railcar.isEmpty ? 'Empty' : 'Loaded' }}</td>
+        <td>{{ railcar.badOrdered ? 'Yes' : 'No' }}</td>
+        <td>{{ railcar.badOrderDate }}</td>
+        <td>{{ railcar.badOrderDescription }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

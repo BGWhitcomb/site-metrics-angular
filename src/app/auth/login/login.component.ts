@@ -32,7 +32,6 @@ export class LoginComponent {
         // Store token (mock)
         localStorage.setItem('token', res.token);
         this.errorMessage = '';
-        // Redirect or update UI as needed
       },
       error: () => {
         this.errorMessage = 'Invalid username or password';

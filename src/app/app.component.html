@@ -1,19 +1,27 @@
-<!-- Remove <html>, <head>, and <body> tags; Angular handles these in index.html -->
 <header *ngIf="isLoggedIn">
     <nav class="navbar">
         <a routerLink="/home" routerLinkActive="active" class="nav-links">Home</a>
         <a routerLink="/railcar-form" routerLinkActive="active" class="nav-links">New Railcar</a>
         <a routerLink="/railcar-inspection-list" routerLinkActive="active" class="nav-links">Inspection List</a>
         <a routerLink="/bad-order-list" routerLinkActive="active" class="nav-links">Bad Order List</a>
-        <a (click)="logout()" class="nav-links" style="cursor:pointer;">Logout</a>
+        <a (click)="openLogoutModal()" class="nav-links" style="cursor:pointer;">Logout</a>
     </nav>
 </header>
 
+<body>
+    <div class="modal" *ngIf="showLogoutModal">
+        <div class="modal-content">
+            <span class="close" (click)="cancelLogout()">&times;</span>
+            <h3>Are you sure you want to logout?</h3>
+            <button type="button" class="cta-button" (click)="confirmLogout()">Logout</button>
+            <button type="button" class="cta-button" (click)="cancelLogout()">Cancel</button>
+        </div>
+    </div>
+</body>
 <div style="padding: 2em;">
     <router-outlet></router-outlet>
 </div>
 <footer class="footer">
     <p>&copy; 2025 Railcar Tracker. All rights reserved.</p>
-    <p>Developed by Byron Whitcomb</p>
-    <p>Contact: support@railcartracker.site</p>
+    <p>Contact: support&#64;railcartracker.site</p>
 </footer>

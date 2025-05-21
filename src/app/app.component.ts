@@ -6,17 +6,32 @@ import { Router } from '@angular/router';
   templateUrl: './app.component.html'
 })
 export class AppComponent {
+  showLogoutModal: boolean = false;
+
+
   get isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
 
+
   constructor(private router: Router) { }
 
-  logout() {
-    if (confirm('Are you sure you want to log out?')) {
-    localStorage.removeItem('token');
-    this.router.navigate(['/login']);
-    }
+  // Called when logout button is clicked
+  openLogoutModal() {
+    this.showLogoutModal = true;
   }
+
+  // Called when user confirms logout in modal
+  confirmLogout() {
+    localStorage.removeItem('token');
+    this.showLogoutModal = false;
+    this.router.navigate(['/login']);
+  }
+
+  // Called when user cancels logout in modal
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
+
 
 }
