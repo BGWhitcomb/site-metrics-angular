@@ -33,5 +33,11 @@ export class AppComponent {
     this.showLogoutModal = false;
   }
 
+  activeTab: 'home' | 'railcarForm' | 'inspectionList'  = 'home';
+
+  setTab(tab: 'home' | 'railcarForm' | 'inspectionList') {
+    this.activeTab = tab;
+  }
+
 
 }

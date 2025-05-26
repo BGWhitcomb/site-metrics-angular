@@ -1,10 +1,44 @@
-<div class="container">
-    <p>Streamline your railcar inspections with our easy-to-use tracking system. Add and maintain inspections, bad
-        orders, and view visualized data.</p>
-    <button class="cta-button" routerLink="/railcar-form">Get Started</button>
-    <!-- <div style="max-width:600px; margin:2em auto;">
-        <canvas baseChart [datasets]="barChartData" [labels]="barChartLabels" [options]="barChartOptions"
-            [legend]="barChartLegend" [chartType]="barChartType">
-        </canvas>
-    </div> -->
+<div class="hero-section shadow-sm mb-5 rounded">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="./assets/railcarbanner_white.png" alt="Railcar Inspection" class="img-fluid rounded shadow-sm">
+            </div>
+            <div class="col-lg-6">
+                <h1 class="display-5 fw-bold mb-3">Railcar Inspection Tracker</h1>
+                <p class="lead mb-4">
+                    Streamline your railcar inspections with our easy-to-use tracking system. Add and maintain inspections, bad
+                    orders, and view visualized data.
+                </p>
+                <button class="btn btn-primary btn-lg px-4" routerLink="/railcar-form">
+                    Get Started
+                    <i class="material-icons-outlined ms-2">arrow_forward</i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+        <div class="row">
+            <!-- Bar Chart -->
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="card-title h5 mb-3">Inspections Trend (Last 5 Months)</h2>
+                        <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="card-title h5 mb-3">Current Month Overview</h2>
+                        <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>

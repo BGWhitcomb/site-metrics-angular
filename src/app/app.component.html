@@ -1,13 +1,3 @@
-<!-- <header *ngIf="isLoggedIn">
-    <nav class="navbar">
-        <a routerLink="/home" routerLinkActive="active" class="nav-links">Home</a>
-        <a routerLink="/railcar-form" routerLinkActive="active" class="nav-links">New Railcar</a>
-        <a routerLink="/railcar-inspection-list" routerLinkActive="active" class="nav-links">Inspection List</a>
-        <a routerLink="/bad-order-list" routerLinkActive="active" class="nav-links">Bad Order List</a>
-        <a (click)="openLogoutModal()" class="nav-links" style="cursor:pointer;">Logout</a>
-    </nav>
-</header> -->
-
 <!-- testing with stitch -->
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
@@ -19,20 +9,23 @@
 
 <aside *ngIf="isLoggedIn" class="sidebar">
   <div class="sidebar-logo">
-    <img alt="Railcar App Logo"
-      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYwuzHE9w7acNn64uPqm5nBCwRFnNBTZBEP9_M_PLgdRW1VPyALmxIzofNMxknhJFf7NzV8QKszC0rnKfbhpHFYp4t-PHOfd8l5a93-dLO5tsSQ3aJBNUYNlHIgZtcxZRj61-PstS9iX6yPZc4bXdoT4uJKgCSsAAWwTQCYhYljKtYpEFAGNYZOa7JpH5VzF6UooQd1H1DQEHAwrqmHisZF9NHIdxvBpeitKWy8H0u8cnIClQM_Ve-xhxIgOG8rEM6jX9XQ0mX4JA" />
+    <img href="/home" alt="Railcar App Logo" src="/assets/railcartracker_grey.png" />
   </div>
   <nav class="nav flex-column sidebar-nav w-100 align-items-center">
-    <a class="nav-link tooltip-custom" href="/home">
+    <a class="nav-link tooltip-custom" [ngClass]="{'active': activeTab === 'home'}" routerLink="/home"
+      (click)="setTab('home')" [attr.aria-selected]="activeTab === 'home'">
       <span class="material-icons-outlined sidebar-icon">home</span>
       <span class="tooltiptext-custom">Home</span>
     </a>
-    <a class="nav-link tooltip-custom position-relative" href="/railcar-form">
+    <a class="nav-link tooltip-custom position-relative" [ngClass]="{'active': activeTab === 'railcarForm'}"
+      routerLink="/railcar-form" (click)="setTab('railcarForm')" [attr.aria-selected]="activeTab === 'railcarForm'">
       <span class="material-icons sidebar-icon">train</span>
       <span class="material-icons-outlined sidebar-add-icon">add_circle</span>
       <span class="tooltiptext-custom">Add New Inspection</span>
     </a>
-    <a class="nav-link active tooltip-custom" href="/railcar-inspection-list">
+    <a class="nav-link tooltip-custom" [ngClass]="{'active': activeTab === 'inspectionList'}"
+      routerLink="/railcar-inspection-list" (click)="setTab('inspectionList')"
+      [attr.aria-selected]="activeTab === 'inspectionList'">
       <span class="material-icons-outlined sidebar-icon">list_alt</span>
       <span class="tooltiptext-custom">Inspection List</span>
     </a>
@@ -58,6 +51,7 @@
 <div style="padding: 2em;">
   <router-outlet></router-outlet>
 </div>
+
 <footer *ngIf="isLoggedIn === false" class="footer">
   <p>&copy; 2025 Railcar Tracker. All rights reserved.</p>
   <p>Contact: support&#64;railcartracker.site</p>

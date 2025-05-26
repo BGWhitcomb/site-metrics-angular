@@ -28,12 +28,12 @@
       </button>
     </li>
   </ul>
-  <div class="tab-content" style="margin-left: ;" id="inspections-content">
+  <div class="tab-content" id="inspections-content">
     <div aria-labelledby="inspections-tab" class="tab-pane fade show active" role="tabpanel">
       <div class="card shadow-sm">
         <div class="card-body p-3 p-sm-4">
-          <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-3">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 mb-md-4 gap-3">
+            <!-- Left: filter, input, advanced filter, heading -->
             <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
               <span class="material-icons-outlined text-secondary">filter_list</span>
               <input class="form-control form-control-sm-custom w-25" id="inspectionFilterInput"
@@ -41,8 +41,8 @@
               <button aria-label="Advanced Filters" class="btn btn-outline-secondary p-2" type="button">
                 <span class="material-icons-outlined">tune</span>
               </button>
-              <h2 class="mb-md-0 text-dark ms-2">Railcar Inspections</h2>
             </div>
+            <!-- Right: button -->
             <div class="ms-md-auto">
               <button *ngIf="activeTab === 'inspections'" class="btn btn-primary d-flex gap-2 text-nowrap"
                 type="button">
