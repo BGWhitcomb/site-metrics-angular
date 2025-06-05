@@ -1,39 +1,56 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { InboundRailcar } from '../inbound-railcar';
+import { BadOrderedRailcar } from '../bad-ordered-railcar';
 
 @Component({
   selector: 'app-railcar-form',
   templateUrl: './railcar-form.component.html',
   styleUrls: ['./railcar-form.component.css']
 })
-export class RailcarFormComponent implements OnInit {
+export class RailcarFormComponent implements OnInit, OnDestroy {
   carMark: string = '';
   carNumber: string = '';
   inspectedDate: string = '';
-  repaired: boolean = false;
-  repairDescription: string = '';
-  isLoaded: boolean = false;
+  repaired: boolean = false; // Used to show repair description field, and document if the railcar is repaired
+  repairDescription: string = '';                                                   // at the time of inspection
+  isLoaded: boolean = false; // Used for the checkbox in the UI
+  isEmpty: boolean = false;  // Used only for backend logic
   badOrdered: boolean = false;
   badOrderDate: string = '';
   badOrderDescription: string = '';
+  isActive: boolean = false; // Used to track if the bad order is active and not repaired
   showBadOrderModal: boolean = false;
   successMessage: string = '';
   errorMessage: string = '';
-  queuedRailcars: any[] = [];
+  queuedRailcars: InboundRailcar[] = [];
   editIndex: number | null = null;
+  loading: boolean = false;
 
-  ngOnInit() {
+  private messageTimeout: any;
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit(): void {
     const today = new Date().toISOString().substring(0, 10);
     this.inspectedDate = today;
     this.badOrderDate = today;
   }
 
-  onRepairedChange() {
+  ngOnDestroy(): void {
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+    }
+  }
+
+  onRepairedChange(): void {
     if (!this.repaired) {
       this.repairDescription = '';
     }
   }
 
-  onBadOrderedChange() {
+  onBadOrderedChange(): void {
     if (this.badOrdered) {
       this.badOrderDate = this.inspectedDate;
       this.badOrderDescription = '';
@@ -43,98 +60,210 @@ export class RailcarFormComponent implements OnInit {
     }
   }
 
-  onSubmit() {
-    // Handle form submission to table for queuing
-    const formData = {
+  onSubmit(): void {
+    // Validate required fields
+    if (!this.carMark || !this.carNumber || !this.inspectedDate) {
+      this.errorMessage = 'Please fill out all required fields.';
+      this.successMessage = '';
+      this.clearMessagesAfterDelay();
+      return;
+    }
+    // Validate inspectedRailcar interface on the form data
+    // infer if the railcar is bad ordered based on the form state
+    const hasBadOrder =
+      !!this.badOrderDate && !!this.badOrderDescription;
+
+    const formData: InboundRailcar = {
       carMark: this.carMark,
-      carNumber: this.carNumber,
+      carNumber: +this.carNumber,
       inspectedDate: this.inspectedDate,
       repaired: this.repaired,
+      isEmpty: !this.isLoaded,
+      badOrdered: this.badOrdered || hasBadOrder,
       repairDescription: this.repairDescription,
-      isLoaded: this.isLoaded,
-      badOrder: this.showBadOrderModal
-        ? {
-          badOrderDate: this.badOrderDate,
-          badOrderDescription: this.badOrderDescription
-        }
-        : null
+      badOrderedRailcar: (this.badOrdered || hasBadOrder) ? {
+        carMark: this.carMark,
+        carNumber: +this.carNumber,
+        badOrderDate: this.badOrderDate,
+        badOrderDescription: this.badOrderDescription,
+        isActive: true
+        // badOrderId and repairedDate are optional and omitted here
+      } : undefined
     };
-    // push to queue or edit existing entry
+
+    // Push to queue or edit existing entry
     if (this.editIndex !== null) {
       this.queuedRailcars[this.editIndex] = formData;
       this.editIndex = null;
+      this.successMessage = 'Railcar updated in queue!';
     } else {
       this.queuedRailcars.push(formData);
-    }
-    // Reset form or show confirmation as needed
-    if (this.carMark && this.carNumber && this.inspectedDate) {
       this.successMessage = 'Added to queue!';
-      this.errorMessage = '';
-    } else {
-      this.successMessage = '';
-      this.errorMessage = 'Please fill out all required fields.';
     }
+
+    this.errorMessage = '';
     this.clearForm();
     this.clearMessagesAfterDelay();
   }
 
-
-
-  onBadOrderedSubmit() {
-    // Reset form or show confirmation as needed
-    if (this.badOrderDate && this.badOrderDescription) {
-      this.successMessage = 'Bad order details added!';
-      this.errorMessage = '';
-      this.showBadOrderModal = false;
-    } else {
-      this.successMessage = '';
+  onBadOrderedSubmit(): void {
+    if (!this.badOrderDate || !this.badOrderDescription) {
       this.errorMessage = 'Please fill out all bad order fields.';
+      this.successMessage = '';
+      this.clearMessagesAfterDelay();
+      return;
     }
+
+    // Set isBadOrdered to true and update badOrderedRailcar
+    this.successMessage = 'Bad order details added!';
+    this.errorMessage = '';
+    this.showBadOrderModal = false;
     this.clearMessagesAfterDelay();
   }
 
-  clearForm() {
+  clearForm(): void {
     this.carMark = '';
     this.carNumber = '';
     this.inspectedDate = new Date().toISOString().substring(0, 10);
     this.repaired = false;
     this.repairDescription = '';
-    this.isLoaded = false;
+    this.isEmpty = false;
     this.badOrdered = false;
     this.badOrderDate = new Date().toISOString().substring(0, 10);
     this.badOrderDescription = '';
   }
 
-  clearMessagesAfterDelay() {
-    setTimeout(() => {
-      this.successMessage = '';
-      this.errorMessage = '';
-    }, 5000);
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+    }
   }
-  saveEdit(index: number) {
+
+  private clearMessagesAfterDelay(delay: number = 5000): void {
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+    }
+
+    this.messageTimeout = setTimeout(() => {
+      this.errorMessage = '';
+      this.successMessage = '';
+    }, delay);
+  }
+
+  editQueuedRailcar(index: number): void {
+    this.editIndex = index;
+    const railcar = this.queuedRailcars[index];
+
+    // Populate form with existing data
+    this.carMark = railcar.carMark;
+    this.carNumber = railcar.carNumber.toString();
+    this.inspectedDate = railcar.inspectedDate;
+    this.repaired = railcar.repaired;
+    this.repairDescription = railcar.repairDescription || '';
+    this.isEmpty = railcar.isEmpty;
+
+    if (railcar.badOrdered && railcar.badOrderedRailcar) {
+      this.isActive = true;
+      this.badOrderDate = railcar.badOrderedRailcar.badOrderDate;
+      this.badOrderDescription = railcar.badOrderedRailcar.badOrderDescription;
+      this.showBadOrderModal = true;
+    } else {
+      this.badOrdered = false;
+      this.showBadOrderModal = false;
+    }
+  }
+
+  saveEdit(index: number): void {
     this.editIndex = null;
     this.successMessage = 'Railcar updated!';
     this.clearMessagesAfterDelay();
   }
 
-  cancelEdit() {
+  cancelEdit(): void {
     this.editIndex = null;
+    this.clearForm();
     this.successMessage = 'Edit cancelled.';
     this.clearMessagesAfterDelay();
   }
-  editQueuedRailcar(index: number) {
-    this.editIndex = index;
+
+  removeQueuedRailcar(index: number): void {
+    if (confirm('Are you sure you want to remove this railcar from the queue?')) {
+      this.queuedRailcars.splice(index, 1);
+      this.successMessage = 'Railcar removed from queue!';
+      this.clearMessagesAfterDelay();
+
+      // Reset edit index if we're editing the removed item
+      if (this.editIndex === index) {
+        this.editIndex = null;
+        this.clearForm();
+      } else if (this.editIndex !== null && this.editIndex > index) {
+        this.editIndex--;
+      }
+    }
   }
 
-  removeQueuedRailcar(index: number) {
-    this.queuedRailcars.splice(index, 1);
-    this.successMessage = 'Railcar removed from queue!';
+  // Enhanced error handling method
+  submitQueuedRailcars(): void {
+    if (this.queuedRailcars.length === 0) {
+      this.errorMessage = 'No railcars queued for submission';
+      this.clearMessagesAfterDelay();
+      return;
+    }
+
+    this.loading = true;
+    this.clearMessages();
+    const queueLength = this.queuedRailcars.length;
+
+    console.log('Frontend request: ', this.queuedRailcars);
+
+    this.http.post(`${environment.apiUrl}/inspections`, this.queuedRailcars)
+      .subscribe({
+        next: (response) => {
+          // Transform response to use isRepaired
+          const transformedResponse = Array.isArray(response) ? response.map(railcar => ({
+            ...railcar,
+            isRepaired: railcar.repaired,  // convert from backend field name
+          })) : response;
+
+          console.log('Backend response:', response);
+          this.queuedRailcars = [];
+          this.loading = false;
+          this.successMessage = `Successfully submitted ${queueLength} railcar inspection${queueLength > 1 ? 's' : ''}!`;
+          this.clearMessagesAfterDelay();
+        },
+        error: (error) => {
+          console.error('Error submitting to backend:', error);
+          this.loading = false;
+
+          // Handle different types of errors
+          if (error.status === 0) {
+            // Network error or CORS issue
+            this.errorMessage = 'Connection failed. Please check if the server is running and try again.';
+            console.error('Network Error Details:', {
+              message: error.message,
+              url: error.url,
+              type: 'Network/CORS Error'
+            });
+          } else if (error.status >= 400 && error.status < 500) {
+            // Client errors (400-499)
+            this.errorMessage = `Request error (${error.status}): ${error.error?.message || 'Invalid request data'}`;
+          } else if (error.status >= 500) {
+            // Server errors (500-599)
+            this.errorMessage = `Server error (${error.status}): Please try again later`;
+          } else {
+            // Generic fallback
+            this.errorMessage = 'Failed to submit railcars. Please try again.';
+          }
+
+          this.clearMessagesAfterDelay();
+        }
+      });
   }
-  submitAllToBackend() {
-    // Replace with actual logic
-    console.log('Submitting to backend:', this.queuedRailcars);
-    this.queuedRailcars = [];
-    this.successMessage = 'All queued submissions sent!';
-    this.clearMessagesAfterDelay();
+
+  retrySubmission(): void {
+    this.submitQueuedRailcars();
   }
 }

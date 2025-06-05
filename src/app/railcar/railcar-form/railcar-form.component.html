@@ -61,7 +61,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let rc of queuedRailcars; let i = index">
+                    <tr *ngFor="let rc of queuedRailcars; let i = index" [ngClass]="{'bad-order-row': rc.badOrdered}">
                         <td *ngIf="editIndex !== i">{{ rc.carMark }}</td>
                         <td *ngIf="editIndex === i"><input [(ngModel)]="rc.carMark" name="carMark{{i}}" /></td>
 
@@ -82,27 +82,28 @@
                             <textarea [(ngModel)]="rc.repairDescription" name="repairDescription{{i}}"></textarea>
                         </td>
 
-                        <td *ngIf="editIndex !== i">{{ rc.isLoaded ? 'E' : 'L' }}</td>
+                        <td *ngIf="editIndex !== i">{{ rc.isEmpty ? 'E' : 'L' }}</td>
                         <td *ngIf="editIndex === i">
-                            <select [(ngModel)]="rc.isLoaded" name="isLoaded{{i}}">
+                            <select [(ngModel)]="rc.isEmpty" name="isLoaded{{i}}">
                                 <option [value]="true">E</option>
                                 <option [value]="false">L</option>
                             </select>
                         </td>
 
-                        <td *ngIf="editIndex !== i">{{ rc.badOrder ? 'Yes' : 'No' }}</td>
+                        <td *ngIf="editIndex !== i">{{ rc.badOrdered ? 'Yes' : 'No' }}</td>
                         <td *ngIf="editIndex === i">
-                            <input type="checkbox" [(ngModel)]="rc.badOrder" name="badOrder{{i}}" />
+                            <input type="checkbox" [(ngModel)]="rc.badOrdered" name="badOrder{{i}}" />
                         </td>
 
-                        <td *ngIf="editIndex !== i">{{ rc.badOrder?.badOrderDate || '' }}</td>
-                        <td *ngIf="editIndex === i">
-                            <input type="date" [(ngModel)]="rc.badOrderDate" name="badOrderDate{{i}}" />
+                        <td *ngIf="editIndex !== i">{{ rc.badOrderedRailcar?.badOrderDate }}</td>
+                        <td *ngIf="editIndex === i && rc.badOrderedRailcar">
+                            <input type="date" [(ngModel)]="rc.badOrderedRailcar.badOrderDate"
+                                name="badorderdate{{i}}" />
                         </td>
-
-                        <td *ngIf="editIndex !== i">{{ rc.badOrder?.badOrderDescription || '' }}</td>
-                        <td *ngIf="editIndex === i">
-                            <textarea [(ngModel)]="rc.badOrderDescription" name="badOrderDescription{{i}}"></textarea>
+                        <td *ngIf="editIndex !== i">{{ rc.badOrderedRailcar?.badOrderDescription || '' }}</td>
+                        <td *ngIf="editIndex === i && rc.badOrderedRailcar">
+                            <textarea [(ngModel)]="rc.badOrderedRailcar.badOrderDescription"
+                                name="badOrderDescription{{i}}"></textarea>
                         </td>
 
                         <td>
@@ -138,7 +139,7 @@
                 </tbody>
             </table>
         </div>
-        <button type="button" class="cta-button" (click)="submitAllToBackend()">Submit!</button>
+        <button type="button" class="cta-button" (click)="submitQueuedRailcars()">Submit!</button>
     </div>
 
     <!-- Modal for Bad Order Details -->
@@ -148,13 +149,13 @@
             <h3>Bad Order Details</h3>
             <div class="form-group">
                 <label for="badOrderDate">Bad Order Date</label>
-                <input id="badOrderDate" name="badOrderDate" type="date" [(ngModel)]="badOrderDate"
-                    class="form-control" />
+                <input id="badOrderDate" name="badOrderDate" type="date" [(ngModel)]="badOrderDate" class="form-control"
+                    required />
             </div>
             <div class="form-group">
                 <label for="badOrderDescription">Bad Order Description</label>
                 <textarea id="badOrderDescription" name="badOrderDescription" [(ngModel)]="badOrderDescription"
-                    class="form-control"></textarea>
+                    class="form-control" required=""></textarea>
             </div>
             <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
             <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>

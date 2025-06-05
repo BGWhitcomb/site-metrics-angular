@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 
+
+
+// make this an exportable component
 @Component({
   selector: 'app-bad-order-list',
   templateUrl: './bad-order-list.component.html',

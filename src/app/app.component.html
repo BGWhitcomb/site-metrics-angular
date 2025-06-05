@@ -41,7 +41,6 @@
 <body>
   <div class="modal" *ngIf="showLogoutModal">
     <div class="modal-content">
-      <span class="close" (click)="cancelLogout()">&times;</span>
       <h3>Are you sure you want to logout?</h3>
       <button type="button" class="cta-button" (click)="confirmLogout()">Logout</button>
       <button type="button" class="cta-button" (click)="cancelLogout()">Cancel</button>

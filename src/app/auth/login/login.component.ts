@@ -10,9 +10,10 @@ export class LoginComponent {
   username = '';
   password = '';
   errorMessage = '';
+  showPassword = false;
 
   // Mock authentication service
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private http: HttpClient) { }
 
   onSubmit() {
     if (this.username === 'admin' && this.password === 'password') {

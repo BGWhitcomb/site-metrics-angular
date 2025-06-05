@@ -22,8 +22,14 @@
                                 <span class="input-group-text">
                                     <i class="material-icons-outlined">lock</i>
                                 </span>
-                                <input id="password" name="password" type="password" [(ngModel)]="password" required
-                                    class="form-control" placeholder="Enter password">
+                                <input id="password" name="password" [type]="showPassword ? 'text' : 'password'"
+                                    [(ngModel)]="password" required class="form-control" placeholder="Enter password">
+                                <button type="button" class="btn btn-outline-secondary" tabindex="-1"
+                                    (click)="showPassword = !showPassword">
+                                    <i class="material-icons-outlined">
+                                        {{ showPassword ? 'visibility_off' : 'visibility' }}
+                                    </i>
+                                </button>
                             </div>
                         </div>
                         <button class="btn btn-primary w-50 mb-3" type="submit" [disabled]="loginForm.invalid">

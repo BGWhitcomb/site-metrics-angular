@@ -3,6 +3,10 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
+<!-- User message for any action -->
+<div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+<div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
 <!-- Tab Navigation -->
 <div class="tab-table" id="tab-table">
   <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
@@ -28,226 +32,309 @@
       </button>
     </li>
   </ul>
-  <div class="tab-content" id="inspections-content">
-    <div aria-labelledby="inspections-tab" class="tab-pane fade show active" role="tabpanel">
-      <div class="card shadow-sm">
-        <div class="card-body p-3 p-sm-4">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 mb-md-4 gap-3">
-            <!-- Left: filter, input, advanced filter, heading -->
-            <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
-              <span class="material-icons-outlined text-secondary">filter_list</span>
-              <input class="form-control form-control-sm-custom w-25" id="inspectionFilterInput"
-                placeholder="Filter by Car Mark, Number..." type="text" />
-              <button aria-label="Advanced Filters" class="btn btn-outline-secondary p-2" type="button">
-                <span class="material-icons-outlined">tune</span>
-              </button>
-            </div>
-            <!-- Right: button -->
-            <div class="ms-md-auto">
-              <button *ngIf="activeTab === 'inspections'" class="btn btn-primary d-flex gap-2 text-nowrap"
-                type="button">
-                <span class="material-icons-outlined">add</span>
-                New Inspection
-              </button>
-            </div>
-          </div>
 
-          <!-- Inspections Tab -->
-          <div *ngIf="activeTab === 'inspections'" class="tab-pane fade show active" id="inspections-content"
-            role="tabpanel" aria-labelledby="inspections-tab">
-            <div class="table-responsive card shadow-sm">
-              <div class="card-body p-3 p-sm-4">
-                <h2 class="h5 text-dark mb-3">Inspections</h2>
-                <table class="table table-hover" id="inspectionsTable">
-                  <thead>
-                    <tr>
-                      <th class="text-center" style="width: 5%;">
-                        <input aria-label="Select all inspections" class="form-check-input" type="checkbox" />
-                      </th>
-                      <th>Car Mark</th>
-                      <th>Car Number</th>
-                      <th>Inspected</th>
-                      <th class="text-center">Repaired</th>
-                      <th style="min-width: 150px;">Repair Desc.</th>
-                      <th class="text-center">Bad Ordered</th>
-                      <th>BO Date</th>
-                      <th style="min-width: 150px;">BO Desc.</th>
-                      <th class="text-end">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let row of inspections" [ngClass]="{'bad-order-row': row.badOrdered}">
-                      <td class="text-center"><input aria-label="Select inspection" class="form-check-input"
-                          type="checkbox" /></td>
-                      <td class="fw-medium">{{ row.carMark }}</td>
-                      <td>{{ row.carNumber }}</td>
-                      <td>{{ row.inspected }}</td>
-                      <td class="text-center">
-                        <input aria-label="Repaired" class="form-check-input repair-checkbox" type="checkbox"
-                          [checked]="row.repaired" disabled />
-                      </td>
-                      <td>
-                        <input class="form-control form-control-sm-custom repair-desc-input" type="text"
-                          [value]="row.repairDescription" [readonly]="true" />
-                      </td>
-                      <td class="text-center">
-                        <input aria-label="Bad Ordered" class="form-check-input bad-order-checkbox" type="checkbox"
-                          [checked]="row.badOrdered" disabled />
-                      </td>
-                      <td>
-                        <input class="form-control form-control-sm-custom bad-order-date" type="text"
-                          [value]="row.badOrderDate" [readonly]="true" />
-                      </td>
-                      <td>
-                        <input class="form-control form-control-sm-custom bad-order-desc" type="text"
-                          [value]="row.badOrderDescription" [readonly]="true" />
-                      </td>
-                      <td class="text-end">
-                        <button aria-label="More actions" class="btn btn-sm btn-action p-1" type="button">
-                          <span class="material-icons-outlined">more_horiz</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <!-- Pagination and results summary -->
-            <div
-              class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
-              <div class="mb-2 mb-sm-0">
-                Showing <span class="fw-semibold text-dark">1</span> to <span class="fw-semibold text-dark">{{
-                  inspections.length }}</span>
-                of <span class="fw-semibold text-dark">72</span> results
-              </div>
-              <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                  <li class="page-item disabled"><a class="page-link" href="#"><span
-                        class="material-icons-outlined">chevron_left</span></a></li>
-                  <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                  <li class="page-item"><a class="page-link" href="#">2</a></li>
-                  <li class="page-item"><a class="page-link" href="#">3</a></li>
-                  <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                  <li class="page-item"><a class="page-link" href="#">8</a></li>
-                  <li class="page-item"><a class="page-link" href="#"><span
-                        class="material-icons-outlined">chevron_right</span></a></li>
-                </ul>
-              </nav>
-            </div>
+  <div class="tab-content">
+    <!-- Filter and Action Bar - Shared across tabs -->
+    <div class="card shadow-sm">
+      <div class="card-body p-3 p-sm-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 mb-md-4 gap-3">
+          <!-- Left: filter, input, advanced filter -->
+          <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
+            <span class="material-icons-outlined text-secondary">filter_list</span>
+            <input class="form-control form-control-sm-custom w-25" id="inspectionFilterInput"
+              placeholder="Filter by Car Mark, Number..." type="text" />
+            <button aria-label="Advanced Filters" class="btn btn-outline-secondary p-2" type="button">
+              <span class="material-icons-outlined">tune</span>
+            </button>
           </div>
-
-          <!-- Bad Orders Tab -->
-          <div *ngIf="activeTab === 'bad-orders'" class="tab-pane fade show active" id="bad-orders-content"
-            role="tabpanel" aria-labelledby="bad-orders-tab">
-            <div class="card shadow-sm">
-              <div class="card-body p-3 p-sm-4">
-                <h2 class="h5 text-dark mb-3">Active Bad Orders</h2>
-                <div class="table-responsive">
-                  <table class="table table-hover" id="activeBadOrdersTable">
-                    <thead>
-                      <tr>
-                        <th>Car Mark</th>
-                        <th>Car Number</th>
-                        <th>Bad Ordered Date</th>
-                        <th style="min-width: 200px;">Bad Order Description</th>
-                        <th class="text-end">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let row of badOrders">
-                        <td class="fw-medium">{{ row.carMark }}</td>
-                        <td>{{ row.carNumber }}</td>
-                        <td>{{ row.badOrderDate }}</td>
-                        <td>{{ row.badOrderDescription }}</td>
-                        <td class="text-end">
-                          <button aria-label="Edit Bad Order" class="btn btn-sm btn-action p-1" type="button">
-                            <span class="material-icons-outlined">edit</span>
-                          </button>
-                          <button aria-label="Resolve Bad Order" class="btn btn-sm btn-success p-1 ms-1" type="button">
-                            <span class="material-icons-outlined">check_circle</span>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div
-                  class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
-                  <div class="mb-2 mb-sm-0">
-                    Showing <span class="fw-semibold text-dark">1</span> to <span class="fw-semibold text-dark">{{
-                      badOrders.length }}</span>
-                    of <span class="fw-semibold text-dark">{{ badOrders.length }}</span> results
-                  </div>
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                      <li class="page-item disabled"><a class="page-link" href="#"><span
-                            class="material-icons-outlined">chevron_left</span></a></li>
-                      <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item disabled"><a class="page-link" href="#"><span
-                            class="material-icons-outlined">chevron_right</span></a></li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- All Bad Orders Tab -->
-          <div *ngIf="activeTab === 'all-bad-orders'" class="tab-pane fade show active" id="all-bad-orders-content"
-            role="tabpanel" aria-labelledby="all-bad-orders-tab">
-            <div class="card shadow-sm">
-              <div class="card-body p-3 p-sm-4">
-                <h2 class="h5 text-dark mb-3">All Bad Orders (History)</h2>
-                <div class="table-responsive">
-                  <table class="table table-hover" id="allBadOrdersTable">
-                    <thead>
-                      <tr>
-                        <th>Car Mark</th>
-                        <th>Car Number</th>
-                        <th>Bad Ordered Date</th>
-                        <th style="min-width: 200px;">Bad Order Description</th>
-                        <th>Resolved Date</th>
-                        <th class="text-end">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let row of allBadOrders">
-                        <td class="fw-medium">{{ row.carMark }}</td>
-                        <td>{{ row.carNumber }}</td>
-                        <td>{{ row.badOrderDate }}</td>
-                        <td>{{ row.badOrderDescription }}</td>
-                        <td>{{ row.resolvedDate }}</td>
-                        <td class="text-end">
-                          <button aria-label="View Details" class="btn btn-sm btn-action p-1" type="button">
-                            <span class="material-icons-outlined">visibility</span>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div
-                  class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
-                  <div class="mb-2 mb-sm-0">
-                    Showing <span class="fw-semibold text-dark">1</span> to <span class="fw-semibold text-dark">{{
-                      allBadOrders.length }}</span>
-                    of <span class="fw-semibold text-dark">15</span> results
-                  </div>
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                      <li class="page-item disabled"><a class="page-link" href="#"><span
-                            class="material-icons-outlined">chevron_left</span></a></li>
-                      <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item"><a class="page-link" href="#">2</a></li>
-                      <li class="page-item"><a class="page-link" href="#"><span
-                            class="material-icons-outlined">chevron_right</span></a></li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
+          <!-- New Inspection button - Only show on inspections tab -->
+          <div class="ms-md-auto">
+            <button *ngIf="activeTab === 'inspections'" class="btn btn-primary d-flex gap-2 text-nowrap" type="button"
+              href="/railcar-form">
+              <span class="material-icons-outlined">add</span>
+              New Inspection
+            </button>
           </div>
         </div>
+
+        <!-- Inspections Tab Content -->
+        <div *ngIf="activeTab === 'inspections'" class="tab-pane fade show active" id="inspections-content"
+          role="tabpanel" aria-labelledby="inspections-tab">
+          <h2 class="h5 text-dark mb-3">Inspections</h2>
+          <div class="table-responsive">
+            <table class="table table-hover" id="inspectionsTable">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 5%;">
+                    <input aria-label="Select all inspections" class="form-check-input" type="checkbox" />
+                  </th>
+                  <th (click)="setSort('carMark')" style="cursor:pointer">
+                    Car Mark
+                    <span *ngIf="sortColumn === 'carMark'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('carNumber')" style="cursor:pointer">
+                    Car Number
+                    <span *ngIf="sortColumn === 'carNumber'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('inspectedDate')" style="cursor:pointer">
+                    Inspected
+                    <span *ngIf="sortColumn === 'inspectedDate'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th class="text-center">Repaired</th>
+                  <th style="min-width: 150px;">Repair Desc.</th>
+                  <th class="text-center">Bad Ordered</th>
+                  <th>BO Date</th>
+                  <th style="min-width: 150px;">BO Desc.</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of pagedInspections" [ngClass]="{'bad-order-row': row.badOrdered}">
+                  <td class="text-center"><input aria-label="Select inspection" class="form-check-input"
+                      type="checkbox" /></td>
+                  <td class="fw-medium">{{ row.carMark }}</td>
+                  <td>{{ row.carNumber }}</td>
+                  <td>{{ row.inspectedDate }}</td>
+                  <td class="text-center">
+                    <input aria-label="Repaired" class="form-check-input repair-checkbox" type="checkbox"
+                      [checked]="row.repaired" disabled />
+                  </td>
+                  <td>
+                    <input class="form-control form-control-sm-custom repair-desc-input" type="text"
+                      [value]="row.repairDescription || ''" [readonly]="true" />
+                  </td>
+                  <td class="text-center">
+                    <input aria-label="Bad Ordered" class="form-check-input bad-order-checkbox" type="checkbox"
+                      [checked]="row.badOrdered" disabled />
+                  </td>
+                  <td>
+                    <input class="form-control form-control-sm-custom bad-order-date" type="text"
+                      [value]="row.badOrderedRailcar?.badOrderDate" [readonly]="true" />
+                  </td>
+                  <td>
+                    <input class="form-control form-control-sm-custom bad-order-desc" type="text"
+                      [value]="row.badOrderedRailcar?.badOrderDescription" [readonly]="true" />
+                  </td>
+                  <td class="text-end">
+                    <button aria-label="More actions" class="btn btn-sm btn-action p-1" type="button">
+                      <span class="material-icons-outlined">more_horiz</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination for Inspections Tab -->
+          <div
+            class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
+            <div class="mb-2 mb-sm-0">
+              Showing
+              <span class="fw-semibold text-dark">{{ (page - 1) * pageSize + 1 }}</span>
+              to
+              <span class="fw-semibold text-dark">
+                {{ Math.min(page * pageSize, inspections.length) }}
+              </span>
+              of
+              <span class="fw-semibold text-dark">{{ inspections.length }}</span>
+              results
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="page === 1">
+                  <a class="page-link" href="#" (click)="setPage(page - 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_left</span>
+                  </a>
+                </li>
+                <li class="page-item"
+                  *ngFor="let p of [].constructor(Math.ceil(inspections.length / pageSize)); let i = index"
+                  [class.active]="page === i + 1">
+                  <a class="page-link" href="#" (click)="setPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="page === Math.ceil(inspections.length / pageSize)">
+                  <a class="page-link" href="#" (click)="setPage(page + 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_right</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Bad Orders Tab Content -->
+        <div *ngIf="activeTab === 'bad-orders'" class="tab-pane fade show active" id="bad-orders-content"
+          role="tabpanel" aria-labelledby="bad-orders-tab">
+          <h2 class="h5 text-dark mb-3">Active Bad Orders</h2>
+          <div class="table-responsive">
+            <table class="table table-hover" id="activeBadOrdersTable">
+              <thead>
+                <tr>
+                  <th (click)="setSort('carMark')" style="cursor:pointer">
+                    Car Mark
+                    <span *ngIf="sortColumn === 'carMark'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('carNumber')" style="cursor:pointer">
+                    Car Number
+                    <span *ngIf="sortColumn === 'carNumber'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('badOrderDate')" style="cursor:pointer">Bad Ordered Date
+                    <span *ngIf="sortColumn === 'badOrderDate'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th style="min-width: 200px;">Bad Order Description</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of pagedBadOrders">
+                  <td class="fw-medium">{{ row.carMark }}</td>
+                  <td>{{ row.carNumber }}</td>
+                  <td>{{ row.badOrderDate }}</td>
+                  <td>{{ row.badOrderDescription }}</td>
+                  <td class="text-end">
+                    <button aria-label="Edit Bad Order" class="btn btn-sm btn-action p-1" type="button">
+                      <span class="material-icons-outlined">edit</span>
+                    </button>
+                    <button aria-label="Resolve Bad Order" class="btn btn-sm btn-success p-1 ms-1" type="button">
+                      <span class="material-icons-outlined">check_circle</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination and results info for Bad Orders Tab -->
+          <div
+            class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
+            <div class="mb-2 mb-sm-0">
+              Showing
+              <span class="fw-semibold text-dark">{{ (page - 1) * pageSize + 1 }}</span>
+              to
+              <span class="fw-semibold text-dark">
+                {{ Math.min(page * pageSize, badOrders.length) }}
+              </span>
+              of
+              <span class="fw-semibold text-dark">{{ badOrders.length }}</span>
+              results
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="page === 1">
+                  <a class="page-link" href="#" (click)="setPage(page - 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_left</span>
+                  </a>
+                </li>
+                <li class="page-item"
+                  *ngFor="let p of [].constructor(Math.ceil(badOrders.length / pageSize)); let i = index"
+                  [class.active]="page === i + 1">
+                  <a class="page-link" href="#" (click)="setPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="page === Math.ceil(badOrders.length / pageSize)">
+                  <a class="page-link" href="#" (click)="setPage(page + 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_right</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <!-- All Bad Orders Tab Content -->
+        <div *ngIf="activeTab === 'all-bad-orders'" class="tab-pane fade show active" id="all-bad-orders-content"
+          role="tabpanel" aria-labelledby="all-bad-orders-tab">
+          <h2 class="h5 text-dark mb-3">All Bad Orders (History)</h2>
+          <div class="table-responsive">
+            <table class="table table-hover" id="allBadOrdersTable">
+              <thead>
+                <tr>
+                  <th (click)="setSort('carMark')" style="cursor:pointer">
+                    Car Mark
+                    <span *ngIf="sortColumn === 'carMark'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('carNumber')" style="cursor:pointer">
+                    Car Number
+                    <span *ngIf="sortColumn === 'carNumber'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th (click)="setSort('badOrderDate')" style="cursor:pointer">
+                    Bad Ordered Date
+                    <span *ngIf="sortColumn === 'badOrderDate'">
+                      {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                  </th>
+                  <th style="min-width: 200px;">Bad Order Description</th>
+                  <th>Repair Date</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of pagedAllBadOrders">
+                  <td class="fw-medium">{{ row.carMark }}</td>
+                  <td>{{ row.carNumber }}</td>
+                  <td>{{ row.badOrderDate }}</td>
+                  <td>{{ row.badOrderDescription }}</td>
+                  <td>{{ row.repairedDate }}</td>
+                  <td class="text-end">
+                    <button aria-label="View Details" class="btn btn-sm btn-action p-1" type="button">
+                      <span class="material-icons-outlined">visibility</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination and results info for All Bad Orders Tab -->
+          <div
+            class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
+            <div class="mb-2 mb-sm-0">
+              Showing
+              <span class="fw-semibold text-dark">{{ (page - 1) * pageSize + 1 }}</span>
+              to
+              <span class="fw-semibold text-dark">
+                {{ Math.min(page * pageSize, allBadOrders.length) }}
+              </span>
+              of
+              <span class="fw-semibold text-dark">{{ allBadOrders.length }}</span>
+              results
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="page === 1">
+                  <a class="page-link" href="#" (click)="setPage(page - 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_left</span>
+                  </a>
+                </li>
+                <li class="page-item"
+                  *ngFor="let p of [].constructor(Math.ceil(allBadOrders.length / pageSize)); let i = index"
+                  [class.active]="page === i + 1">
+                  <a class="page-link" href="#" (click)="setPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="page === Math.ceil(allBadOrders.length / pageSize)">
+                  <a class="page-link" href="#" (click)="setPage(page + 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_right</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
