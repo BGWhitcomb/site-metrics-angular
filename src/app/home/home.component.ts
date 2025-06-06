@@ -175,7 +175,7 @@ export class HomeComponent implements OnInit {
         if (field === 'inspectedDate') {
           return itemMonth === month;
         } else if (field === 'repaired') {
-          return itemMonth === month && item.repaired;
+          return itemMonth === month && item.isRepaired;
         } else if (field === 'badOrdered') {
           return itemMonth === month && item.badOrdered;
         }

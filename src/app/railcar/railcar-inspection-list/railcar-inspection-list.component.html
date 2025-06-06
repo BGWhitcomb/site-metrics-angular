@@ -48,9 +48,13 @@
             </button>
           </div>
           <!-- New Inspection button - Only show on inspections tab -->
-          <div class="ms-md-auto">
-            <button *ngIf="activeTab === 'inspections'" class="btn btn-primary d-flex gap-2 text-nowrap" type="button"
-              href="/railcar-form">
+          <div class="ms-md-auto d-flex gap-2">
+            <button *ngIf="editingRows.length > 0" class="btn btn-success d-flex gap-2" (click)="submitEditedRows()">
+              <span class="material-icons-outlined">save</span>
+              Submit All ({{editingRows.length}})
+            </button>
+            <button *ngIf="activeTab === 'inspections'" class="btn btn-primary d-flex gap-2"
+              (click)="addNewInspection()">
               <span class="material-icons-outlined">add</span>
               New Inspection
             </button>
@@ -66,7 +70,14 @@
               <thead>
                 <tr>
                   <th class="text-center" style="width: 5%;">
-                    <input aria-label="Select all inspections" class="form-check-input" type="checkbox" />
+                    <!-- Remove checkbox when save button is active -->
+                    <input *ngIf="selectedRows.size < 0" aria-label="Select all inspections" class="form-check-input"
+                      type="checkbox" [checked]="selectAll" (change)="toggleSelectAll()" />
+                    <!-- Show save button when rows are selected, implement with add inspection feature? -->
+                    <button *ngIf="selectedRows.size > 0" class="btn btn-sm btn-success p-1 ms-2"
+                      (click)="saveSelectedRows()">
+                      <span class="material-icons-outlined">save</span>
+                    </button>
                   </th>
                   <th (click)="setSort('carMark')" style="cursor:pointer">
                     Car Mark
@@ -91,41 +102,105 @@
                   <th class="text-center">Bad Ordered</th>
                   <th>BO Date</th>
                   <th style="min-width: 150px;">BO Desc.</th>
-                  <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of pagedInspections" [ngClass]="{'bad-order-row': row.badOrdered}">
-                  <td class="text-center"><input aria-label="Select inspection" class="form-check-input"
-                      type="checkbox" /></td>
-                  <td class="fw-medium">{{ row.carMark }}</td>
-                  <td>{{ row.carNumber }}</td>
-                  <td>{{ row.inspectedDate }}</td>
+                <!-- Editing Rows -->
+                <tr *ngIf="toggleRowSelection()" *ngFor="let row of editingRows; let i = index" class="editing-row"
+                  [ngClass]="{'bad-order-row': row.badOrdered}">
                   <td class="text-center">
-                    <input aria-label="Repaired" class="form-check-input repair-checkbox" type="checkbox"
-                      [checked]="row.repaired" disabled />
+                    <button class="btn btn-sm btn-success p-1" (click)="saveEditedRow(i)">
+                      <span class="material-icons-outlined">check_circle</span>
+                    </button>
+                  </td>
+                  <td class="fw-medium">
+                    <input [(ngModel)]="row.carMark" class="form-control form-control-sm-custom">
                   </td>
                   <td>
-                    <input class="form-control form-control-sm-custom repair-desc-input" type="text"
-                      [value]="row.repairDescription || ''" [readonly]="true" />
+                    <input [(ngModel)]="row.carNumber" type="number" class="form-control form-control-sm-custom">
+                  </td>
+                  <td>
+                    <input [(ngModel)]="row.inspectedDate" type="date" class="form-control form-control-sm-custom">
+                  </td>
+                  <td class="text-center">
+                    <input [(ngModel)]="row.isRepaired" type="checkbox" class="form-check-input repair-checkbox"
+                      (change)="toggleRepairDescription(row)">
+                  </td>
+                  <td>
+                    <input [(ngModel)]="row.repairDescription"
+                      class="form-control form-control-sm-custom repair-desc-input" [disabled]="!row.isRepaired">
+                  </td>
+                  <td class="text-center">
+                    <input [(ngModel)]="row.badOrdered" type="checkbox" class="form-check-input bad-order-checkbox">
+                  </td>
+                  <td>
+                    <input [ngModel]="row.badOrderedRailcar?.badOrderDate"
+                      (ngModelChange)="row.badOrderedRailcar && (row.badOrderedRailcar.badOrderDate = $event)"
+                      type="date" class="form-control form-control-sm-custom bad-order-date"
+                      [disabled]="!row.badOrdered">
+                  </td>
+                  <td>
+                    <input [ngModel]="row.badOrderedRailcar?.badOrderDescription"
+                      (ngModelChange)="row.badOrderedRailcar && (row.badOrderedRailcar.badOrderDescription = $event)"
+                      class="form-control form-control-sm-custom bad-order-desc" [disabled]="!row.badOrdered">
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-danger p-1" (click)="!selectedRows.has(i)">
+                      <span class="material-icons-outlined">close</span>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Existing rows of inspections -->
+                <tr *ngFor="let row of pagedData; let i = index"
+                  [ngClass]="{'bad-order-row': row.badOrdered, 'selected-row': selectedRows.has(i)}">
+                  <td class="text-center">
+                    <input aria-label="Select inspection" class="form-check-input" type="checkbox"
+                      [checked]="selectedRows.has(i)" (change)="toggleRowSelection(i)" />
+                  </td>
+                  <td class="fw-medium">
+                    <input *ngIf="selectedRows.has(i)" [(ngModel)]="row.carMark"
+                      class="form-control form-control-sm-custom">
+                    <span *ngIf="!selectedRows.has(i)">{{ row.carMark }}</span>
+                  </td>
+                  <td class="fw-medium">
+                    <input *ngIf="selectedRows.has(i)" [(ngModel)]="row.carNumber"
+                      class="form-control form-control-sm-custom">
+                    <span *ngIf="!selectedRows.has(i)">{{ row.carMark }}</span>
+                  </td>
+                  <td class="fw-medium">
+                    <input *ngIf="selectedRows.has(i)" [(ngModel)]="row.inspectedDate"
+                      class="form-control form-control-sm-custom">
+                    <span *ngIf="!selectedRows.has(i)">{{ row.carMark }}</span>
+                  </td>
+                  <td class="text-center">
+                    <input aria-label="Repaired" class="form-check-input repair-checkbox" type="checkbox"
+                      [checked]="row.isRepaired" [disabled]="!selectedRows.has(i)" />
+                  </td>
+                  <td class="fw-medium">
+                    <input *ngIf="selectedRows.has(i)" [(ngModel)]="row.repairDescription"
+                      class="form-control form-control-sm-custom" [readOnly]="!selectedRows.has(i)">
+                    <span>{{ row.repairDescription }}</span>
                   </td>
                   <td class="text-center">
                     <input aria-label="Bad Ordered" class="form-check-input bad-order-checkbox" type="checkbox"
-                      [checked]="row.badOrdered" disabled />
+                      [checked]="row.badOrdered" [disabled]="!selectedRows.has(i)" />
                   </td>
                   <td>
                     <input class="form-control form-control-sm-custom bad-order-date" type="text"
-                      [value]="row.badOrderedRailcar?.badOrderDate" [readonly]="true" />
+                      [value]="row.badOrderedRailcar?.badOrderDate" [readonly]="!selectedRows.has(i)" />
                   </td>
                   <td>
                     <input class="form-control form-control-sm-custom bad-order-desc" type="text"
-                      [value]="row.badOrderedRailcar?.badOrderDescription" [readonly]="true" />
+                      [value]="row.badOrderedRailcar?.badOrderDescription" [readonly]="!selectedRows.has(i)" />
                   </td>
-                  <td class="text-end">
-                    <button aria-label="More actions" class="btn btn-sm btn-action p-1" type="button">
-                      <span class="material-icons-outlined">more_horiz</span>
+                  <!-- Might not need this  -->
+                  <!-- <td class="text-end">
+                    <button aria-label="Add edit" class="btn btn-sm btn-action p-1" type="button"
+                      [disabled]="!selectedRows.has(i)">
+                      <span class="material-icons-outlined">check_circle</span>
                     </button>
-                  </td>
+                  </td> -->
                 </tr>
               </tbody>
             </table>
@@ -197,7 +272,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of pagedBadOrders">
+                <tr *ngFor="let row of pagedData">
                   <td class="fw-medium">{{ row.carMark }}</td>
                   <td>{{ row.carNumber }}</td>
                   <td>{{ row.badOrderDate }}</td>
@@ -283,7 +358,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of pagedAllBadOrders">
+                <tr *ngFor="let row of pagedData">
                   <td class="fw-medium">{{ row.carMark }}</td>
                   <td>{{ row.carNumber }}</td>
                   <td>{{ row.badOrderDate }}</td>

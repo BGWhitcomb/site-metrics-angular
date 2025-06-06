@@ -19,7 +19,7 @@
     </div>
     <div class="checkbox-row">
         <label>
-            <input type="checkbox" name="repaired" [(ngModel)]="repaired" (change)="onRepairedChange()" />
+            <input type="checkbox" name="repaired" [(ngModel)]="isRepaired" (change)="onRepairedChange()" />
             Repaired
         </label>
         <label>
@@ -31,7 +31,7 @@
             Bad Ordered
         </label>
     </div>
-    <div class="form-group" *ngIf="repaired">
+    <div class="form-group" *ngIf="isRepaired">
         <label for="repairDescription">Repair Description</label>
         <textarea id="repairDescription" name="repairDescription" [(ngModel)]="repairDescription"
             class="form-control"></textarea>
@@ -72,9 +72,9 @@
                         <td *ngIf="editIndex === i"><input type="date" [(ngModel)]="rc.inspectedDate"
                                 name="inspectedDate{{i}}" /></td>
 
-                        <td *ngIf="editIndex !== i">{{ rc.repaired ? 'Yes' : 'No' }}</td>
+                        <td *ngIf="editIndex !== i">{{ rc.isRepaired ? 'Yes' : 'No' }}</td>
                         <td *ngIf="editIndex === i">
-                            <input [(ngModel)]="rc.repaired" type="checkbox" name="repaired{{i}}" />
+                            <input [(ngModel)]="rc.isRepaired" type="checkbox" name="repaired{{i}}" />
                         </td>
 
                         <td *ngIf="editIndex !== i">{{ rc.repairDescription }}</td>

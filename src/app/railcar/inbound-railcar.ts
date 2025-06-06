@@ -1,8 +1,8 @@
 export interface InboundRailcar {
     inboundId?: number;
     carMark: string;
-    carNumber: number;
-    repaired: boolean;
+    carNumber: string | number;
+    isRepaired: boolean;
     repairDescription?: string;
     isEmpty: boolean;
     inspectedDate: string;

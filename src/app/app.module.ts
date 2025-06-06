@@ -31,13 +31,6 @@ import { NgChartsModule } from 'ng2-charts';
     NgChartsModule
   ],
   providers: [],
-  bootstrap: [AppComponent,
-    NgChartsModule,
-    RailcarFormComponent,
-    RailcarInspectionListComponent,
-    BadOrderListComponent,
-    LoginComponent,
-    HomeComponent
-  ]
+  bootstrap: [AppComponent] // Only the root component should be here
 })
 export class AppModule { }
