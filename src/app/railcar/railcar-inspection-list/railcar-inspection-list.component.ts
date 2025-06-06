@@ -2,8 +2,13 @@ import { Component, Injectable, OnDestroy, OnInit } from '@angular/core';
 import { InspectionService } from '../inspection.service';
 import { InboundRailcar } from '../inbound-railcar';
 import { BadOrderedRailcar } from '../bad-ordered-railcar';
-import { finalize, Subject, takeUntil } from 'rxjs';
+import { finalize, Observable, Subject, takeUntil } from 'rxjs';
 
+// tracking for client side inline table editing before submitting to backend
+interface PendingEdit {
+  new: InboundRailcar[];
+  modified: InboundRailcar[];
+}
 
 type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
 
@@ -13,12 +18,12 @@ type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
   styleUrls: ['./railcar-inspection-list.component.css']
 })
 export class RailcarInspectionListComponent implements OnInit, OnDestroy {
-  toggleRepairDescription(_t70: InboundRailcar) {
-    throw new Error('Method not implemented.');
+
+  pendingEdit: PendingEdit = {
+    new: [],
+    modified: []
   }
-  removeEditingRow(_t71: number) {
-    throw new Error('Method not implemented.');
-  }
+
   inspections: InboundRailcar[] = [];
   badOrders: BadOrderedRailcar[] = [];
   allBadOrders: BadOrderedRailcar[] = [];
@@ -27,34 +32,89 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   selectAll: boolean = false;
   editMode: boolean = false;
 
+  editingRows: Set<number> = new Set();
+  rowBackups: Map<number, InboundRailcar> = new Map();
+
+  errorMessage: string = '';
+  successMessage: string = '';
+  loading: boolean = false;
+  public Math = Math;
+
+  //keyboard behavior
+
+  focusNext($event: Event) {
+    throw new Error('Method not implemented.');
+  }
+
+  // toggle methods
+
+  toggleRepairDescription(inboundId: number): void {
+    // Find the row in the inspections array
+    const row = this.inspections.find(r => r.inboundId === inboundId);
+
+    if (row) {
+      // If isRepaired is unchecked, clear the repair description
+      if (!row.isRepaired) {
+        row.repairDescription = '';
+      }
+    }
+  }
+
+  toggleBadOrder(inboundId: number): void {
+    const row = this.inspections.find(r => r.inboundId === inboundId);
+
+    if (row) {
+      if (row.badOrdered) {
+        // Create badOrderedRailcar when checkbox is checked
+        if (!row.badOrderedRailcar) {
+          row.badOrderedRailcar = {
+            badOrderId: undefined,
+            carMark: row.carMark || '',
+            carNumber: parseInt(row.carNumber?.toString() || '0'),
+            badOrderDate: new Date().toISOString().split('T')[0],
+            badOrderDescription: '',
+            isActive: true,
+            repairedDate: undefined
+          };
+        }
+      } else {
+        // Remove badOrderedRailcar when checkbox is unchecked
+        row.badOrderedRailcar = undefined;
+      }
+    }
+  }
+
+
   toggleSelectAll(): void {
     this.selectAll = !this.selectAll;
     this.selectedRows.clear();
 
     if (this.selectAll) {
-      this.pagedData.forEach((_, index) => this.selectedRows.add(index));
+      this.pagedData.forEach((row) => this.selectedRows.add(row.inboundId));
     }
     this.updateEditMode();
   }
 
-  toggleRowSelection(index: number): void {
-    if (this.selectedRows.has(index)) {
-      this.selectedRows.delete(index);
+  toggleEdit(inboundId: number): void {
+    if (this.editingRows.has(inboundId)) {
+      this.cancelEdit(inboundId);
     } else {
-      this.selectedRows.add(index);
+      // Only create backup for existing rows (not new empty rows)
+      if (inboundId > 0) {
+        const row = this.inspections.find(r => r.inboundId === inboundId);
+        if (row) {
+          this.rowBackups.set(inboundId, { ...row });
+        }
+      }
+      this.editingRows.add(inboundId);
     }
-    this.selectAll = this.selectedRows.size === this.pagedData.length;
-    this.updateEditMode();
   }
 
   private updateEditMode(): void {
     this.editMode = this.selectedRows.size > 0;
   }
 
-  errorMessage: string = '';
-  successMessage: string = '';
-  loading: boolean = false;
-  public Math = Math;
+
 
   // Tabs
   activeTab: TabType = 'inspections';
@@ -85,92 +145,241 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.loadDataForActiveTab();
   }
 
-  // New inspection adds a new row to the editing list
-  editingRows: InboundRailcar[] = [];
-  editIndex: number | null = null;
+  // generate placeholder id for better row assignment when adding new rows
+  private generateTempId(): number {
+    return -(Date.now() + Math.floor(Math.random() * 1000));
+  }
+
+  // when called, will generate an empty row for the user to fill out
   addNewInspection(): void {
-    const today = new Date().toISOString().split('T')[0];
-    const emptyInspection: InboundRailcar = {
+    const emptyRow: InboundRailcar = {
+      inboundId: this.generateTempId(), // need to clear this prior to sending to server? or handle in a different way
       carMark: '',
       carNumber: '',
-      inspectedDate: today,
       isRepaired: false,
       repairDescription: '',
-      badOrdered: false,
-      isEmpty: true
+      isEmpty: true,
+      inspectedDate: new Date().toISOString().split('T')[0],
+      badOrdered: false, // if true, create badOrderedRailcar
+      badOrderedRailcar: undefined  // Start as undefined
     };
-    this.editingRows.unshift(emptyInspection);
-    this.editIndex = 0;
+
+    // Add to the inspections array
+    this.inspections.unshift(emptyRow);
+
+    // Reset to first page to see the new row
+    this.page = 1;
+
+    // Start editing the new row using inboundId
+    this.editingRows.add(emptyRow.inboundId!);
+
+    // Mark as selected for easier batch operations
+    this.selectedRows.add(emptyRow.inboundId!);
+
+    // Update edit mode
+    this.updateEditMode();
+
+    // Focus first input
     setTimeout(() => {
       const firstInput = document.querySelector('.editing-row input') as HTMLInputElement;
       if (firstInput) firstInput.focus();
-    });
+    }, 0);
+  }
+  // Inline update methods
+
+  isEditing(inboundId: number): boolean {
+    return this.editingRows.has(inboundId);
   }
 
-  // Add method to save edited row
-  rowLength: number = 0;
-  saveEditedRow(index: number): void {
-    const editedRow = this.editingRows[index];
-    if (this.validateRow(editedRow)) {
-      this.inspections.unshift(editedRow);
-      this.editingRows.splice(index, 1);
+
+
+  cancelEdit(inboundId: number): void {
+    // Check if this is a new empty row (has negative temp ID)
+    if (inboundId < 0) {
+      // Remove the empty row entirely from the inspections array
+      this.inspections = this.inspections.filter(row => row.inboundId !== inboundId);
+
+      // Clean up tracking sets
+      this.editingRows.delete(inboundId);
+      this.selectedRows.delete(inboundId);
+
+      // Update edit mode
+      this.updateEditMode();
+    } else {
+      // Handle existing rows - restore from backup
+      if (this.rowBackups.has(inboundId)) {
+        // Find the actual row in the inspections array and restore it
+        const rowIndex = this.inspections.findIndex(row => row.inboundId === inboundId);
+        if (rowIndex !== -1) {
+          this.inspections[rowIndex] = { ...this.rowBackups.get(inboundId)! };
+        }
+
+        // Clean up tracking
+        this.editingRows.delete(inboundId);
+        this.rowBackups.delete(inboundId);
+        this.selectedRows.delete(inboundId);
+
+        // Update edit mode
+        this.updateEditMode();
+      }
     }
   }
 
-  saveSelectedRows(): void {
-    const selectedInspections = this.pagedData.filter((_, index) =>
-      this.selectedRows.has(index)
+  updateBadOrderDate(date: string, row: InboundRailcar): void {
+    if (row.badOrdered) {
+      if (!row.badOrderedRailcar) {
+        // Create if it doesn't exist and badOrdered is true
+        row.badOrderedRailcar = {
+          badOrderId: undefined,
+          carMark: row.carMark || '',
+          carNumber: parseInt(row.carNumber?.toString() || '0'),
+          badOrderDate: date,
+          badOrderDescription: '',
+          isActive: true,
+          repairedDate: undefined
+        };
+      } else {
+        // Update existing
+        row.badOrderedRailcar.badOrderDate = date;
+      }
+    }
+  }
+
+  updateBadOrderDescription(desc: string, row: InboundRailcar): void {
+    if (row.badOrdered && row.badOrderedRailcar) {
+      row.badOrderedRailcar.badOrderDescription = desc;
+    }
+  }
+
+  // Save methods and getters
+
+  get hasPendingEdit(): boolean {
+    return this.pendingEdit.new.length > 0 ||
+      this.pendingEdit.modified.length > 0;
+  }
+
+  get hasSelectedEdits(): boolean {
+    return this.selectedRows.size > 0 && this.editingRows.size > 0;
+  }
+
+  // For showing the "Save" button (when actively editing)
+  get hasActiveEdits(): boolean {
+    return this.editingRows.size > 0;
+  }
+
+  // For showing different button states
+  get canSave(): boolean {
+    return this.editingRows.size > 0 && this.selectedRows.size > 0;
+  }
+
+  get canSubmit(): boolean {
+    return this.hasPendingEdit;
+  }
+
+  private validateRow(row: InboundRailcar): boolean {
+    const basicValidation = Boolean(
+      row.carMark?.trim() &&
+      row.carNumber &&
+      row.inspectedDate
     );
 
-    if (selectedInspections.length === 0) {
-      this.errorMessage = 'No inspections selected to save';
+    // If badOrdered is true, validate badOrderedRailcar fields
+    if (row.badOrdered) {
+      const badOrderValidation = Boolean(
+        row.badOrderedRailcar?.badOrderDate &&
+        row.badOrderedRailcar?.badOrderDescription?.trim()
+      );
+      return basicValidation && badOrderValidation;
+    }
+
+    return basicValidation;
+  }
+
+  // for save button in row during editing
+  saveIndividualRow(inboundId: number): void {
+    const row = this.inspections.find(r => r.inboundId === inboundId);
+
+    if (row && this.validateRow(row)) {
+      // Determine if it's new or modified
+      if (inboundId < 0) {  // New row (temp ID)
+        this.pendingEdit.new.push({ ...row });
+      } else {  // Existing row
+        this.pendingEdit.modified.push({ ...row });
+      }
+
+      // Clean up editing state for this row only
+      this.editingRows.delete(inboundId);
+      this.rowBackups.delete(inboundId);
+      this.selectedRows.delete(inboundId);
+
+      // Update edit mode
+      this.updateEditMode();
+
+      this.successMessage = 'Row saved locally. Click Submit to save to server.';
+      this.errorMessage = '';
+    } else {
+      this.errorMessage = 'Please fill in all required fields for this row';
+    }
+  }
+
+  // for save button that appears at selectAll location for batch saves
+  saveSelectedRows(): void {
+    let validRowCount = 0;
+    let totalSelectedRows = this.selectedRows.size;
+
+    Array.from(this.selectedRows).forEach(inboundId => {
+
+      const row = this.pagedData.find(r => r.inboundId === inboundId);
+      if (row && this.validateRow(row)) {
+        validRowCount++;
+        if (this.editingRows.has(inboundId)) {
+          this.pendingEdit.new.push({ ...row });
+        } else {
+          this.pendingEdit.modified.push({ ...row });
+        }
+        this.editingRows.delete(inboundId);
+        this.rowBackups.delete(inboundId);
+      }
+    });
+
+    if (validRowCount === totalSelectedRows && totalSelectedRows > 0) {
+      this.successMessage = 'Changes saved locally. Click Submit to save to server.';
+      this.selectedRows.clear();
+      this.errorMessage = '';
+    } else if (totalSelectedRows > 0) {
+      this.errorMessage = 'Please fill in all required fields';
+      this.successMessage = '';
+    }
+  }
+
+  submitInspections(): void {
+    if (this.pendingEdit.new.length === 0 && this.pendingEdit.modified.length === 0) {
+      this.errorMessage = 'No changes to submit';
       return;
     }
 
-    let savedCount = 0;
-    let hasError = false;
+    const allChanges = [...this.pendingEdit.new, ...this.pendingEdit.modified] as InboundRailcar[];
 
-    selectedInspections.forEach((inspection, idx) => {
-      this.inspectionService.addInspection(inspection).subscribe({
-        next: () => {
-          savedCount++;
-          if (savedCount === selectedInspections.length && !hasError) {
-            this.successMessage = 'Selected inspections saved successfully';
-            this.selectedRows.clear();
-            this.selectAll = false;
-          }
-        },
-        error: (error) => {
-          hasError = true;
-          this.errorMessage = 'Error saving inspections';
-          console.error('Error saving inspection:', error);
-        }
-      });
+    this.loading = true;
+
+    (this.inspectionService.addInspections(allChanges) as Observable<InboundRailcar[]>).pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: () => {
+        this.successMessage = 'All changes saved successfully';
+        this.pendingEdit = { new: [], modified: [] };
+        this.selectedRows.clear();
+        this.selectAll = false;
+        this.refreshCurrentTab();
+      },
+      error: (error) => {
+        this.errorMessage = 'Error saving changes';
+        console.error('Error saving changes:', error);
+      }
     });
   }
 
-  // Add validation method
-  private validateRow(row: InboundRailcar): boolean {
-    return row.carMark?.trim() !== '' && row.carNumber !== null;
-  }
-
-  focusNext(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement;
-    const nextInput = target.parentElement?.nextElementSibling?.querySelector('input');
-    if (nextInput instanceof HTMLInputElement) {
-      nextInput.focus();
-    }
-  }
-
-  submitEditedRows(): void {
-    const validRows = this.editingRows.filter(row => this.validateRow(row));
-    if (validRows.length > 0) {
-      this.inspections.unshift(...validRows);
-      this.editingRows = [];
-      this.editIndex = null;
-    }
-  }
-
+  //fetch methods
 
   private loadDataForActiveTab() {
     this.clearMessages();

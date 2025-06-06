@@ -17,8 +17,9 @@ export class InspectionService {
     return this.http.get<InboundRailcar[]>(this.baseUrl + '/inspections');
   }
 
-  addInspection(data: InboundRailcar): Observable<InboundRailcar> {
-    return this.http.post<InboundRailcar>(`${this.baseUrl}/inspections`, data);
+  // can handle both single and multiple objects
+  addInspections(data: InboundRailcar | InboundRailcar[]): Observable<InboundRailcar | InboundRailcar[]> {
+    return this.http.post<InboundRailcar | InboundRailcar[]>(`${this.baseUrl}/inspections`, data);
   }
 
   updateInspection(id: string, data: InboundRailcar): Observable<InboundRailcar> {

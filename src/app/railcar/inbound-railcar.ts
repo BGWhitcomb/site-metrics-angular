@@ -10,10 +10,10 @@ export interface InboundRailcar {
     badOrderedRailcar?: {
         badOrderId?: number;
         carMark: string;
-        carNumber: number;
+        carNumber: string | number;
         badOrderDate: string;
         badOrderDescription: string;
-        isActive: boolean;
-        repairedDate?: string;
+        isActive: boolean; // the bad order that is active on the list for repair
+        repairedDate?: string; // When not null, isActive becomes false
     };
 }
