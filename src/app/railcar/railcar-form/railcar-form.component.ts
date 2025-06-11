@@ -13,7 +13,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
   carMark: string = '';
   carNumber: string = '';
   inspectedDate: string = '';
-  repaired: boolean = false; // Used to show repair description field, and document if the railcar is repaired
+  isRepaired: boolean = false; // Used to show repair description field, and document if the railcar is repaired
   repairDescription: string = '';                                                   // at the time of inspection
   isLoaded: boolean = false; // Used for the checkbox in the UI
   isEmpty: boolean = false;  // Used only for backend logic
@@ -45,7 +45,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
   }
 
   onRepairedChange(): void {
-    if (!this.repaired) {
+    if (!this.isRepaired) {
       this.repairDescription = '';
     }
   }
@@ -77,7 +77,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
       carMark: this.carMark,
       carNumber: +this.carNumber,
       inspectedDate: this.inspectedDate,
-      repaired: this.repaired,
+      isRepaired: this.isRepaired,
       isEmpty: !this.isLoaded,
       badOrdered: this.badOrdered || hasBadOrder,
       repairDescription: this.repairDescription,
@@ -125,7 +125,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
     this.carMark = '';
     this.carNumber = '';
     this.inspectedDate = new Date().toISOString().substring(0, 10);
-    this.repaired = false;
+    this.isRepaired = false;
     this.repairDescription = '';
     this.isEmpty = false;
     this.badOrdered = false;
@@ -161,7 +161,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
     this.carMark = railcar.carMark;
     this.carNumber = railcar.carNumber.toString();
     this.inspectedDate = railcar.inspectedDate;
-    this.repaired = railcar.repaired;
+    this.isRepaired = railcar.isRepaired;
     this.repairDescription = railcar.repairDescription || '';
     this.isEmpty = railcar.isEmpty;
 

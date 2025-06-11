@@ -9,7 +9,7 @@ import { LoginComponent } from './auth/login/login.component';
 import { HomeComponent } from './home/home.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AppRoutingModule } from '../app-routing.module';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { NgChartsModule } from 'ng2-charts';
 
@@ -27,17 +27,11 @@ import { NgChartsModule } from 'ng2-charts';
     NgbModule,
     AppRoutingModule,
     FormsModule,
+    ReactiveFormsModule,
     HttpClientModule,
     NgChartsModule
   ],
   providers: [],
-  bootstrap: [AppComponent,
-    NgChartsModule,
-    RailcarFormComponent,
-    RailcarInspectionListComponent,
-    BadOrderListComponent,
-    LoginComponent,
-    HomeComponent
-  ]
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
