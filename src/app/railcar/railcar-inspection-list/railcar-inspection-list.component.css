@@ -1,7 +1,24 @@
 .selected-row {
-  background-color: rgba(0, 123, 255, 0.05) !important;
+    background-color: rgba(0, 123, 255, 0.05) !important;
 }
 
 .selected-row:hover {
-  background-color: rgba(0, 123, 255, 0.1) !important;
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.action-bar-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+}
+
+.table-responsive {
+    max-height: calc(100vh - 150px);
 }

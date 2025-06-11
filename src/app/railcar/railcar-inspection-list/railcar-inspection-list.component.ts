@@ -1,11 +1,11 @@
-import { Component, Injectable, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { InspectionService } from '../inspection.service';
 import { InboundRailcar } from '../inbound-railcar';
 import { BadOrderedRailcar } from '../bad-ordered-railcar';
-import { finalize, Observable, Subject, takeUntil } from 'rxjs';
+import { finalize, Observable, Subject, takeUntil, forkJoin } from 'rxjs';
 
 // tracking for client side inline table editing before submitting to backend
-interface PendingEdit {
+interface InspectionQueue {
   new: InboundRailcar[];
   modified: InboundRailcar[];
 }
@@ -19,7 +19,7 @@ type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
 })
 export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
-  pendingEdit: PendingEdit = {
+  queue: InspectionQueue = {
     new: [],
     modified: []
   }
@@ -29,8 +29,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   allBadOrders: BadOrderedRailcar[] = [];
 
   selectedRows: Set<number> = new Set();
-  selectAll: boolean = false;
-  editMode: boolean = false;
+  selectAll = false;
+  editMode = false;
 
   editingRows: Set<number> = new Set();
   rowBackups: Map<number, InboundRailcar> = new Map();
@@ -107,6 +107,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
         }
       }
       this.editingRows.add(inboundId);
+
+      this.selectedRows.add(inboundId);
     }
   }
 
@@ -141,19 +143,17 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   setTab(tab: TabType) {
     this.activeTab = tab;
-    this.page = 1; // Reset pagination when switching tabs
+    this.page = 1;
     this.loadDataForActiveTab();
   }
 
-  // generate placeholder id for better row assignment when adding new rows
-  private generateTempId(): number {
+
+  private generateRowId(): number {
     return -(Date.now() + Math.floor(Math.random() * 1000));
   }
-
-  // when called, will generate an empty row for the user to fill out
   addNewInspection(): void {
     const emptyRow: InboundRailcar = {
-      inboundId: this.generateTempId(), // need to clear this prior to sending to server? or handle in a different way
+      inboundId: this.generateRowId(),
       carMark: '',
       carNumber: '',
       isRepaired: false,
@@ -164,22 +164,19 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       badOrderedRailcar: undefined  // Start as undefined
     };
 
-    // Add to the inspections array
     this.inspections.unshift(emptyRow);
 
-    // Reset to first page to see the new row
     this.page = 1;
 
-    // Start editing the new row using inboundId
+
     this.editingRows.add(emptyRow.inboundId!);
 
-    // Mark as selected for easier batch operations
+
     this.selectedRows.add(emptyRow.inboundId!);
 
-    // Update edit mode
     this.updateEditMode();
 
-    // Focus first input
+
     setTimeout(() => {
       const firstInput = document.querySelector('.editing-row input') as HTMLInputElement;
       if (firstInput) firstInput.focus();
@@ -191,35 +188,43 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     return this.editingRows.has(inboundId);
   }
 
+  cancelAllEdits(): void {
 
+    const idsToCancel = new Set<number>([
+      ...this.selectedRows,
+      ...this.editingRows,
+    ]);
+
+    idsToCancel.forEach((inboundId) => this.cancelEdit(inboundId));
+
+    this.queue.new = [];
+    this.queue.modified = [];
+
+    this.updateEditMode();
+  }
 
   cancelEdit(inboundId: number): void {
     // Check if this is a new empty row (has negative temp ID)
     if (inboundId < 0) {
-      // Remove the empty row entirely from the inspections array
       this.inspections = this.inspections.filter(row => row.inboundId !== inboundId);
 
-      // Clean up tracking sets
       this.editingRows.delete(inboundId);
       this.selectedRows.delete(inboundId);
 
-      // Update edit mode
       this.updateEditMode();
     } else {
-      // Handle existing rows - restore from backup
       if (this.rowBackups.has(inboundId)) {
-        // Find the actual row in the inspections array and restore it
         const rowIndex = this.inspections.findIndex(row => row.inboundId === inboundId);
         if (rowIndex !== -1) {
           this.inspections[rowIndex] = { ...this.rowBackups.get(inboundId)! };
         }
 
-        // Clean up tracking
+
         this.editingRows.delete(inboundId);
         this.rowBackups.delete(inboundId);
         this.selectedRows.delete(inboundId);
 
-        // Update edit mode
+
         this.updateEditMode();
       }
     }
@@ -254,8 +259,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   // Save methods and getters
 
   get hasPendingEdit(): boolean {
-    return this.pendingEdit.new.length > 0 ||
-      this.pendingEdit.modified.length > 0;
+    return this.queue.new.length > 0 ||
+      this.queue.modified.length > 0;
   }
 
   get hasSelectedEdits(): boolean {
@@ -302,9 +307,9 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     if (row && this.validateRow(row)) {
       // Determine if it's new or modified
       if (inboundId < 0) {  // New row (temp ID)
-        this.pendingEdit.new.push({ ...row });
+        this.queue.new.push({ ...row });
       } else {  // Existing row
-        this.pendingEdit.modified.push({ ...row });
+        this.queue.modified.push({ ...row });
       }
 
       // Clean up editing state for this row only
@@ -315,10 +320,12 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       // Update edit mode
       this.updateEditMode();
 
-      this.successMessage = 'Row saved locally. Click Submit to save to server.';
+
+      this.successMessage = `Rows Saved. Click Submit to save to server.`;
       this.errorMessage = '';
     } else {
       this.errorMessage = 'Please fill in all required fields for this row';
+      this.successMessage = '';
     }
   }
 
@@ -333,9 +340,9 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       if (row && this.validateRow(row)) {
         validRowCount++;
         if (this.editingRows.has(inboundId)) {
-          this.pendingEdit.new.push({ ...row });
+          this.queue.new.push({ ...row });
         } else {
-          this.pendingEdit.modified.push({ ...row });
+          this.queue.modified.push({ ...row });
         }
         this.editingRows.delete(inboundId);
         this.rowBackups.delete(inboundId);
@@ -343,7 +350,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     });
 
     if (validRowCount === totalSelectedRows && totalSelectedRows > 0) {
-      this.successMessage = 'Changes saved locally. Click Submit to save to server.';
+      this.successMessage = 'Changes stored. Click Submit to save.';
       this.selectedRows.clear();
       this.errorMessage = '';
     } else if (totalSelectedRows > 0) {
@@ -353,12 +360,12 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   }
 
   submitInspections(): void {
-    if (this.pendingEdit.new.length === 0 && this.pendingEdit.modified.length === 0) {
+    if (this.queue.new.length === 0 && this.queue.modified.length === 0) {
       this.errorMessage = 'No changes to submit';
       return;
     }
 
-    const allChanges = [...this.pendingEdit.new, ...this.pendingEdit.modified] as InboundRailcar[];
+    const allChanges = [...this.queue.new, ...this.queue.modified] as InboundRailcar[];
 
     this.loading = true;
 
@@ -367,7 +374,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.successMessage = 'All changes saved successfully';
-        this.pendingEdit = { new: [], modified: [] };
+        this.queue = { new: [], modified: [] };
         this.selectedRows.clear();
         this.selectAll = false;
         this.refreshCurrentTab();
@@ -377,6 +384,83 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
         console.error('Error saving changes:', error);
       }
     });
+  }
+
+  deleteInspections(): void {
+    if (this.selectedRows.size === 0 && this.selectAll === false) {
+      this.errorMessage = "No selected rows to delete.";
+      return;
+    }
+
+    // Get the actual row objects, not just IDs
+    const selectedRowsArray = Array.from(this.selectedRows)
+      .map(id => this.inspections.find(row => row.inboundId === id))
+      .filter(row => row !== undefined) as InboundRailcar[];
+
+    // Find intersection of selected and editing rows (by ID comparison)
+    const selectedAndEditingIds = Array.from(this.selectedRows)
+      .filter(selectedId => this.editingRows.has(selectedId));
+
+    // Separate positive IDs (backend delete) from negative IDs (local only)
+    const toDeleteFromBackend = selectedRowsArray.filter(row => row.inboundId! > 0);
+    const toDeleteLocally = selectedRowsArray.filter(row => row.inboundId! < 0);
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    // Create observables array for backend deletions
+    const deleteObservables: Observable<void>[] = [];
+
+    if (toDeleteFromBackend.length > 0) {
+      toDeleteFromBackend.forEach(row => {
+        deleteObservables.push(
+          this.inspectionService.deleteInspection(row.inboundId!.toString(), row)
+        );
+      });
+    }
+
+    // Execute all delete operations
+    if (deleteObservables.length > 0) {
+      forkJoin(deleteObservables).subscribe({
+        next: () => {
+          this.handleDeleteSuccess(selectedRowsArray, selectedAndEditingIds);
+        },
+        error: (error) => {
+          console.error('Error deleting inspections:', error);
+          this.errorMessage = 'Failed to delete some inspections. Please try again.';
+          this.loading = false;
+        }
+      });
+    } else {
+      // Only local deletions (negative IDs)
+      this.handleDeleteSuccess(selectedRowsArray, selectedAndEditingIds);
+    }
+  }
+
+  private handleDeleteSuccess(deletedRows: InboundRailcar[], deletedEditingIds: number[]): void {
+    const deletedIds = deletedRows.map(row => row.inboundId);
+
+    this.inspections = this.inspections.filter(inspection =>
+      !deletedIds.includes(inspection.inboundId)
+    );
+
+    deletedIds.forEach(id => this.selectedRows.delete(id!));
+
+    deletedEditingIds.forEach(id => this.editingRows.delete(id));
+
+    deletedIds.forEach(id => this.rowBackups.delete(id!));
+
+    this.queue.new = this.queue.new.filter(row => !deletedIds.includes(row.inboundId));
+    this.queue.modified = this.queue.modified.filter(row => !deletedIds.includes(row.inboundId));
+
+    this.selectAll = false;
+    this.updateEditMode();
+
+    this.loading = false;
+
+    this.successMessage = `Successfully deleted ${deletedRows.length} inspections`;
+    console.log(`Successfully deleted ${deletedRows.length} inspections`);
+    console.log(`Removed ${deletedEditingIds.length} rows from editing state`);
   }
 
   //fetch methods

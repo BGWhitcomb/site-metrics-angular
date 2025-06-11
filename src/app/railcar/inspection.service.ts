@@ -26,7 +26,7 @@ export class InspectionService {
     return this.http.put<InboundRailcar>(`${this.baseUrl}/inspections/${id}`, data);
   }
 
-  deleteInspection(id: string): Observable<void> {
+  deleteInspection(id: string, data: InboundRailcar | InboundRailcar[]): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/inspections/${id}`);
   }
 
