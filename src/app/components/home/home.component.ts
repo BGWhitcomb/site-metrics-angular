@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { HomeService } from './home.service';
-import { InboundRailcar } from '../railcar/inbound-railcar';
-import { BadOrderedRailcar } from '../railcar/bad-ordered-railcar';
+import { InboundRailcar } from '../railcar-inspection/models/inbound-railcar';
+import { BadOrderedRailcar } from '../railcar-inspection/models/bad-ordered-railcar';
 
 @Component({
   selector: 'app-home',

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { InspectionService } from '../inspection.service';
-import { InboundRailcar } from '../inbound-railcar';
-import { BadOrderedRailcar } from '../bad-ordered-railcar';
+import { InspectionService } from 'src/app/services/inspection.service';
+import { InboundRailcar } from '../models/inbound-railcar';
+import { BadOrderedRailcar } from '../models/bad-ordered-railcar';
 import { finalize, Observable, Subject, takeUntil, forkJoin } from 'rxjs';
 
 // tracking for client side inline table editing before submitting to backend

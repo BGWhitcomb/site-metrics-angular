@@ -7,7 +7,7 @@ import { RailcarInspectionListComponent } from './app/railcar/railcar-inspection
 import { BadOrderListComponent } from './app/railcar/bad-order-list/bad-order-list.component';
 import { LoginComponent } from './app/auth/login/login.component';
 
-import { AuthGuard } from './auth/auth.guard';
+import { AuthGuard } from './app/auth/guards/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
