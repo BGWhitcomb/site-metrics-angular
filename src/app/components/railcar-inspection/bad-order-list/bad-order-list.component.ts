@@ -1,6 +1,6 @@
 import { Component, Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
-import { BadOrderedRailcar } from '../../components/railcar-inspection/models/bad-ordered-railcar';
+import { BadOrderedRailcar } from '../models/bad-ordered-railcar';
 
 @Injectable({
   providedIn: 'root'

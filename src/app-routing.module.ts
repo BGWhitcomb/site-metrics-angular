@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HomeComponent } from './app/home/home.component';
+import { HomeComponent } from './app/components/home/home.component';
 import { RouterModule, Routes } from '@angular/router';
-import { RailcarFormComponent } from './app/railcar/railcar-form/railcar-form.component';
-import { RailcarInspectionListComponent } from './app/railcar/railcar-inspection-list/railcar-inspection-list.component';
-import { BadOrderListComponent } from './app/railcar/bad-order-list/bad-order-list.component';
+import { RailcarFormComponent } from './app/components/railcar-inspection/railcar-form/railcar-form.component';
+import { RailcarInspectionListComponent } from './app/components/railcar-inspection/railcar-inspection-list/railcar-inspection-list.component';
+import { BadOrderListComponent } from './app/components/railcar-inspection/bad-order-list/bad-order-list.component';
 import { LoginComponent } from './app/auth/login/login.component';
 
 import { AuthGuard } from './app/auth/guards/auth.guard';

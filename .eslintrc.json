@@ -8,14 +8,19 @@
             "files": [
                 "*.ts"
             ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "project": [
+                    "tsconfig.json"
+                ],
+                "createDefaultProgram": true
+            },
             "extends": [
-                "eslint:recommended",
-                "@typescript-eslint/recommended",
-                "@typescript-eslint/recommended-requiring-type-checking",
-                "@angular-eslint/recommended",
-                "@angular-eslint/template/process-inline-templates"
+                "plugin:@typescript-eslint/recommended",
+                "plugin:@angular-eslint/recommended"
             ],
             "rules": {
+                "@typescript-eslint/explicit-function-return-type": "error",
                 "@angular-eslint/directive-selector": [
                     "error",
                     {
@@ -32,18 +37,6 @@
                         "style": "kebab-case"
                     }
                 ]
-            }
-        },
-        {
-            "files": [
-                "*.html"
-            ],
-            "extends": [
-                "@angular-eslint/template/recommended",
-                "@angular-eslint/template/accessibility"
-            ],
-            "rules": {
-                "@angular-eslint/template/attr-lowercase": "off"
             }
         }
     ]
