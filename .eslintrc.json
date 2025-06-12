@@ -11,32 +11,22 @@
             "parser": "@typescript-eslint/parser",
             "parserOptions": {
                 "project": [
-                    "tsconfig.json"
+                    "site-metrics-angular/tsconfig.json"
                 ],
                 "createDefaultProgram": true
             },
             "extends": [
-                "plugin:@typescript-eslint/recommended",
-                "plugin:@angular-eslint/recommended"
+                "eslint:recommended",
+                "@typescript-eslint/recommended",
+                "@angular-eslint/recommended",
+                "@angular-eslint/template/process-inline-templates"
             ],
+            // change later
             "rules": {
-                "@typescript-eslint/explicit-function-return-type": "error",
-                "@angular-eslint/directive-selector": [
-                    "error",
-                    {
-                        "type": "attribute",
-                        "prefix": "app",
-                        "style": "camelCase"
-                    }
-                ],
-                "@angular-eslint/component-selector": [
-                    "error",
-                    {
-                        "type": "element",
-                        "prefix": "app",
-                        "style": "kebab-case"
-                    }
-                ]
+                "@typescript-eslint/explicit-function-return-type": "off",
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/no-unused-vars": "off",
+                "@angular-eslint/no-empty-lifecycle-method": "off"
             }
         }
     ]

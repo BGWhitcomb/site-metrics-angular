@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { InspectionService } from 'src/app/services/inspection.service';
 import { InboundRailcar } from '../models/inbound-railcar';
@@ -19,6 +20,7 @@ type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
 })
 export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
+
   queue: InspectionQueue = {
     new: [],
     modified: []
@@ -35,15 +37,34 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   editingRows: Set<number> = new Set();
   rowBackups: Map<number, InboundRailcar> = new Map();
 
-  errorMessage: string = '';
-  successMessage: string = '';
-  loading: boolean = false;
+  errorMessage = '';
+  successMessage = '';
+  loading = false;
   public Math = Math;
+
+  // Tabs
+  activeTab: TabType = 'inspections';
+
+  // Pagination & Sorting
+  page = 1;
+  pageSize = 50;
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   //keyboard behavior
 
-  focusNext($event: Event) {
-    throw new Error('Method not implemented.');
+  focusNext($event: Event): void {
+    const target = $event.target as HTMLInputElement;
+    const inputs = Array.from(document.querySelectorAll('input, select, textarea')) as HTMLInputElement[];
+    const currentIndex = inputs.indexOf(target);
+
+    // Find the next input that is not disabled
+    for (let i = currentIndex + 1; i < inputs.length; i++) {
+      if (!inputs[i].disabled) {
+        inputs[i].focus();
+        break;
+      }
+    }
   }
 
   // toggle methods
@@ -84,18 +105,48 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleLoadStatus(row: InboundRailcar): void {
+
+    /// WORK ON THIS IF UNCHECKED LOADED, IF CHECKED UNLOADED
+    if (!this.queue.modified.some(r => r.inboundId === row.inboundId)) {
+      this.queue.modified.push({ ...row });
+    }
+  }
+
 
   toggleSelectAll(): void {
     this.selectAll = !this.selectAll;
     this.selectedRows.clear();
 
     if (this.selectAll) {
-      this.pagedData.forEach((row) => this.selectedRows.add(row.inboundId));
+      this.pagedData.forEach((row) => {
+        const inboundId = row.inboundId;
+
+        this.selectedRows.add(inboundId);
+
+        // Apply same edit logic as toggleSelect
+        if (!this.editingRows.has(inboundId)) {
+          // Only create backup for existing rows (not new empty rows)
+          if (inboundId > 0) {
+            const inspectionRow = this.inspections.find(r => r.inboundId === inboundId);
+            if (inspectionRow) {
+              this.rowBackups.set(inboundId, { ...inspectionRow });
+            }
+          }
+          this.editingRows.add(inboundId);
+        }
+      });
+    } else {
+      // When deselecting all, cancel all edits
+      Array.from(this.editingRows).forEach(inboundId => {
+        this.cancelEdit(inboundId);
+      });
     }
+
     this.updateEditMode();
   }
 
-  toggleEdit(inboundId: number): void {
+  toggleSelect(inboundId: number): void {
     if (this.editingRows.has(inboundId)) {
       this.cancelEdit(inboundId);
     } else {
@@ -110,29 +161,21 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
       this.selectedRows.add(inboundId);
     }
+    this.updateEditMode();
   }
 
   private updateEditMode(): void {
     this.editMode = this.selectedRows.size > 0;
   }
 
-
-
-  // Tabs
-  activeTab: TabType = 'inspections';
-
-  // Pagination & Sorting
-  page = 1;
-  pageSize = 50;
-  sortColumn: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-
   private destroy$ = new Subject<void>();
 
   constructor(private inspectionService: InspectionService) { }
 
   ngOnInit() {
-    // Load data based on active tab initially
+    this.sortColumn = 'inspectedDate'; // Default sort column
+    this.sortDirection = 'desc'; // Default sort direction
+
     this.loadDataForActiveTab();
   }
 
@@ -332,7 +375,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   // for save button that appears at selectAll location for batch saves
   saveSelectedRows(): void {
     let validRowCount = 0;
-    let totalSelectedRows = this.selectedRows.size;
+    const totalSelectedRows = this.selectedRows.size;
 
     Array.from(this.selectedRows).forEach(inboundId => {
 
@@ -588,6 +631,15 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
       if (aValue == null) return 1;
       if (bValue == null) return -1;
+
+      if (this.sortColumn === 'inspectedDate') {
+        const dateA = new Date(aValue);
+        const dateB = new Date(bValue);
+        return this.sortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
+
       if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;

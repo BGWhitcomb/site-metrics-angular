@@ -12,6 +12,12 @@ import { AppRoutingModule } from '../app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { NgChartsModule } from 'ng2-charts';
+import { PaginationComponent } from './components/railcar-inspection/data-grid/pagination/pagination.component';
+import { InspectionTableComponent } from './components/railcar-inspection/data-grid/inspection-table/inspection-table.component';
+import { FilterComponent } from './components/railcar-inspection/data-grid/filter/filter.component';
+import { BadOrderTableComponent } from './components/railcar-inspection/data-grid/bad-order-table/bad-order-table.component';
+import { AllBadOrdersTableComponent } from './components/railcar-inspection/data-grid/all-bad-orders-table/all-bad-orders-table.component';
+import { ConfirmationDialogComponent } from './components/railcar-inspection/shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +26,13 @@ import { NgChartsModule } from 'ng2-charts';
     RailcarInspectionListComponent,
     BadOrderListComponent,
     LoginComponent,
-    HomeComponent
+    HomeComponent,
+    PaginationComponent,
+    InspectionTableComponent,
+    FilterComponent,
+    BadOrderTableComponent,
+    AllBadOrdersTableComponent,
+    ConfirmationDialogComponent
   ],
   imports: [
     BrowserModule,
