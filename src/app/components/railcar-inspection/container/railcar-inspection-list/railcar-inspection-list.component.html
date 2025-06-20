@@ -1,0 +1,84 @@
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+<!-- Tab Navigation -->
+<div class="tab-table" id="tab-table">
+  <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" [ngClass]="{'active': activeTab === 'inspections'}" (click)="setTab('inspections')"
+        id="inspections-tab" type="button" role="tab" aria-controls="inspections-content"
+        [attr.aria-selected]="activeTab === 'inspections'">
+        Inspections
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" [ngClass]="{'active': activeTab === 'bad-orders'}" (click)="setTab('bad-orders')"
+        id="bad-orders-tab" type="button" role="tab" aria-controls="bad-orders-content"
+        [attr.aria-selected]="activeTab === 'bad-orders'">
+        Bad Orders
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" [ngClass]="{'active': activeTab === 'all-bad-orders'}" (click)="setTab('all-bad-orders')"
+        id="all-bad-orders-tab" type="button" role="tab" aria-controls="all-bad-orders-content"
+        [attr.aria-selected]="activeTab === 'all-bad-orders'">
+        All Bad Orders
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Filter and Action Bar (shared across tabs) -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body p-3 p-sm-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 mb-md-4 gap-3">
+          <!-- Filter Input and Advanced Filter -->
+          <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
+            <span class="material-icons-outlined text-secondary">filter_list</span>
+            <input class="form-control form-control-sm-custom w-25" id="inspectionFilterInput"
+              placeholder="Filter by Car Mark, Number..." type="text" />
+            <button aria-label="Advanced Filters" class="btn btn-outline-secondary p-2" type="button">
+              <span class="material-icons-outlined">tune</span>
+            </button>
+          </div>
+        </div>
+        <!-- Tab Content: Only show the active table -->
+        <div *ngIf="activeTab === 'inspections'">
+          <app-inspection-table [inspections]="inspections" [pagedData]="pagedData" [selectedRows]="selectedRows"
+            [selectAll]="selectAll" [sortColumn]="sortColumn" [sortDirection]="sortDirection" [page]="page"
+            [totalPages]="totalPages" [showingFrom]="showingFrom" [showingTo]="showingTo"
+            (addNewInspection)="addNewInspection()" (updateBadOrderDate)="updateBadOrderDate($event)"
+            (updateBadOrderDescription)="updateBadOrderDescription($event)" (toggleRepaired)="toggleRepaired($event)"
+            (toggleBadOrder)="onToggleBadOrder($event)" (toggleLoadStatus)="onToggleLoadStatus($event)"
+            (toggleSelect)="onToggleSelect($event)" (toggleSelectAll)="onToggleSelectAll($event)"
+            (cancelEdit)="onCancelEdit($event)" (setSort)="onSetSort($event)"
+            (setPage)="onSetPage($event)"></app-inspection-table>
+        </div>
+        <div *ngIf="activeTab === 'bad-orders'">
+          <app-bad-order-table [badOrders]="activeBadOrders"
+            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedData]="pagedData"
+            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumn"
+            [sortDirection]="sortDirection" [page]="page" [totalPages]="totalPages" [showingFrom]="showingFrom"
+            [showingTo]="showingTo" (addNewInspection)="addNewInspection()"
+            (updateBadOrderDate)="updateBadOrderDate($event)"
+            (updateBadOrderDescription)="updateBadOrderDescription($event)" (toggleSelect)="onToggleSelect($event)"
+            (toggleSelectAll)="onToggleSelectAll($event)" (cancelEdit)="onCancelEdit($event)"
+            (setSort)="onSetSort($event)" (setPage)="onSetPage($event)"></app-bad-order-table>
+        </div>
+        <div *ngIf="activeTab === 'all-bad-orders'">
+          <app-all-bad-orders-table [allBadOrders]="allBadOrders"></app-all-bad-orders-table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Bar -->
+<div *ngIf="isEditing || hasActiveEdits || hasPendingEdit || hasSelectedEdits">
+  <app-action-bar [selectedRows]="selectedRows" [queue]="queue" (cancelAllEdits)="cancelAllEdits()"
+    (saveSelectedRows)="saveSelectedRows()" (deleteSelectedRows)="deleteSelectedRows()"
+    (submitInspections)="submitInspections()">
+  </app-action-bar>
+</div>

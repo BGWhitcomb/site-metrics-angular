@@ -1,5 +1,5 @@
 export interface InboundRailcar {
-    inboundId?: number;
+    inboundId: number;
     carMark: string;
     carNumber: string | number;
     isRepaired: boolean;
@@ -8,7 +8,7 @@ export interface InboundRailcar {
     inspectedDate: string;
     badOrdered: boolean; // Creates badOrderedRailcar property if true
     badOrderedRailcar?: {
-        badOrderId?: number;
+        badOrderId: number;
         carMark: string;
         carNumber: string | number;
         badOrderDate: string;

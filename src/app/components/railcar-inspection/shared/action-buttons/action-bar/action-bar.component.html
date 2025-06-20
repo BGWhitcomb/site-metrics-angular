@@ -1,0 +1,29 @@
+<!-- Action Bar (if edits or pending edits) -->
+<div class="action-bar-container">
+    <div class="bg-dark text-white p-2 rounded-pill shadow-lg d-flex align-items-center gap-2">
+        <button class="btn btn-icon btn-sm rounded-circle text-white hover-bg-secondary" title="Close/Cancel all edits"
+            (click)="onCancelAllEdits()">
+            <i class="material-icons-outlined" style="font-size: 1.25rem;">close</i>
+        </button>
+        <button class="btn btn-sm btn-secondary rounded-pill d-flex align-items-center gap-1 hover-bg-dark-emphasis"
+            (click)="onSaveSelectedRows()" title="Save all selected rows" [disabled]="!selectedRows"
+            style="font-size: 1rem;">
+            <i class="material-icons-outlined me-1">save</i>
+            Save Selected ({{ selectedRows.size }})
+        </button>
+        <button class="btn btn-sm btn-success rounded-pill d-flex align-items-center gap-1 hover-bg-success-dark"
+            (click)="onSubmitInspections()" [disabled]="(queue.new.length + queue.modified.length) === 0" title="Submit all queued changes"
+            style="font-size: 1rem;">
+            <i class="material-icons-outlined me-1">cloud_upload</i>
+            Submit Changes ({{ queue.new.length + queue.modified.length }})
+        </button>
+        <span class="badge bg-primary rounded-pill px-2 py-1 small">
+            {{ queue.new.length }} new, {{ queue.modified.length }} modified
+        </span>
+        <button class="btn btn-sm btn-danger rounded-pill d-flex align-items-center gap-1 hover-bg-danger-dark"
+            title="Delete selected rows" (click)="onDeleteSelectedRows()" [disabled]="!selectedRows">
+            <i class="material-icons-outlined" style="font-size: 1rem;">delete</i>
+            <span>Delete</span>
+        </button>
+    </div>
+</div>

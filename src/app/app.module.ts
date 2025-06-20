@@ -3,8 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { RailcarFormComponent } from './components/railcar-inspection/railcar-form/railcar-form.component';
-import { RailcarInspectionListComponent } from './components/railcar-inspection/railcar-inspection-list/railcar-inspection-list.component';
-import { BadOrderListComponent } from './components/railcar-inspection/bad-order-list/bad-order-list.component';
+import { RailcarInspectionListComponent } from './components/railcar-inspection/container/railcar-inspection-list/railcar-inspection-list.component';
 import { LoginComponent } from './auth/login/login.component';
 import { HomeComponent } from './components/home/home.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -18,13 +17,18 @@ import { FilterComponent } from './components/railcar-inspection/data-grid/filte
 import { BadOrderTableComponent } from './components/railcar-inspection/data-grid/bad-order-table/bad-order-table.component';
 import { AllBadOrdersTableComponent } from './components/railcar-inspection/data-grid/all-bad-orders-table/all-bad-orders-table.component';
 import { ConfirmationDialogComponent } from './components/railcar-inspection/shared/dialogs/confirmation-dialog/confirmation-dialog.component';
+import { ToastComponent } from './components/railcar-inspection/shared/dialogs/toast/toast.component';
+import { NavBarComponent } from './shared/core/nav-bar/nav-bar.component';
+import { LogoutDialogComponent } from './shared/core/logout-dialog/logout-dialog.component';
+import { FooterComponent } from './shared/core/footer/footer.component';
+import { LoadingComponent } from './shared/core/loading/loading.component';
+import { ActionBarComponent } from './components/railcar-inspection/shared/action-buttons/action-bar/action-bar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     RailcarFormComponent,
     RailcarInspectionListComponent,
-    BadOrderListComponent,
     LoginComponent,
     HomeComponent,
     PaginationComponent,
@@ -32,7 +36,13 @@ import { ConfirmationDialogComponent } from './components/railcar-inspection/sha
     FilterComponent,
     BadOrderTableComponent,
     AllBadOrdersTableComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    ToastComponent,
+    NavBarComponent,
+    LogoutDialogComponent,
+    FooterComponent,
+    LoadingComponent,
+    ActionBarComponent
   ],
   imports: [
     BrowserModule,

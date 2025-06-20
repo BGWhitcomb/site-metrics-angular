@@ -73,6 +73,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
       !!this.badOrderDate && !!this.badOrderDescription;
 
     const formData: InboundRailcar = {
+      inboundId: 0, // Placeholder, will be set by backend
       carMark: this.carMark,
       carNumber: +this.carNumber,
       inspectedDate: this.inspectedDate,
@@ -81,6 +82,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
       badOrdered: this.badOrdered || hasBadOrder,
       repairDescription: this.repairDescription,
       badOrderedRailcar: (this.badOrdered || hasBadOrder) ? {
+        badOrderId: 0, // Placeholder, will be set by backend
         carMark: this.carMark,
         carNumber: +this.carNumber,
         badOrderDate: this.badOrderDate,

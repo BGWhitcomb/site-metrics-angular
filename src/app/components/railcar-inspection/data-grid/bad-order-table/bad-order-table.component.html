@@ -1,1 +1,92 @@
-<p>bad-order-table works!</p>
+<!-- Bad Orders Table -->
+<div class="table-responsive">
+    <table class="table table-hover" id="activeBadOrdersTable">
+        <thead>
+            <tr>
+                <th (click)="onSetSort('carMark')" style="cursor:pointer">
+                    Car Mark
+                    <span *ngIf="pagination.sortColumn === 'carMark'">
+                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                </th>
+                <th (click)="onSetSort('carNumber')" style="cursor:pointer">
+                    Car Number
+                    <span *ngIf="pagination.sortColumn === 'carNumber'">
+                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                </th>
+                <!-- <th (click)="setSort('isEmpty')" style="cursor:pointer">
+                    E/L
+                    <span *ngIf="pagination.sortColumn === 'isEmpty'">
+                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                </th> -->
+                <th (click)="onSetSort('badOrderDate')" style="cursor:pointer">
+                    Bad Ordered Date
+                    <span *ngIf="pagination.sortColumn === 'badOrderDate'">
+                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
+                    </span>
+                </th>
+                <th style="min-width: 200px;">Bad Order Description</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let row of pagedData">
+                <td class="fw-medium">{{ row.carMark }}</td>
+                <td>{{ row.carNumber }}</td>
+                <!-- <td>
+                    <span class="badge bg-secondary">{{ row.isEmpty ? 'E' : 'L' }}</span>
+                </td> -->
+                <td>{{ row.badOrderedRailcar?.badOrderDate }}</td>
+                <td>{{ row.badOrderedRailcar?.badOrderDescription }}</td>
+                <td class="text-end">
+                    <div class="position-relative">
+                        <button
+                            (click)="toggleDatePicker(row)"
+                            aria-label="Resolve Bad Order" class="btn btn-sm btn-success p-1 ms-1" type="button">
+                            <span class="material-icons-outlined">check_circle</span>
+                        </button>
+
+                        <div *ngIf="isDatePickerOpen(row)" class="mt-2">
+                            <input type="date" class="form-control form-control-sm" [ngModel]="row.badOrderedRailcar?.repairedDate"
+                                (ngModelChange)="onRepairDateChange($event, row)"
+                                (blur)="closeDatePicker(row)" autofocus />
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination for bad orders Tab -->
+<div class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
+    <div class="mb-2 mb-sm-0">
+        Showing
+        <span class="fw-semibold text-dark">{{ showingFrom }}</span>
+        to
+        <span class="fw-semibold text-dark">{{ showingTo }}</span>
+        of
+        <span class="fw-semibold text-dark">{{ badOrders.length }}</span>
+        results
+    </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="page === 1">
+                <a class="page-link" href="#" (click)="onSetPage(page - 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_left</span>
+                </a>
+            </li>
+            <li class="page-item" *ngFor="let p of [].constructor(totalPages); let i = index"
+                [class.active]="page === i + 1">
+                <a class="page-link" href="#" (click)="onSetPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="page === totalPages">
+                <a class="page-link" href="#" (click)="onSetPage(page + 1); $event.preventDefault()">
+                    <span class="material-icons-outlined">chevron_right</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

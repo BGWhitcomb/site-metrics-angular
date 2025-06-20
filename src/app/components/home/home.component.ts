@@ -3,6 +3,7 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { HomeService } from './home.service';
 import { InboundRailcar } from '../railcar-inspection/models/inbound-railcar';
 import { BadOrderedRailcar } from '../railcar-inspection/models/bad-ordered-railcar';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-home',
@@ -14,10 +15,7 @@ export class HomeComponent implements OnInit {
   inspections: InboundRailcar[] = [];
   badOrders: BadOrderedRailcar[] = [];
   loading = false;
-  errorMessage = '';
 
-
-  // add real data here 
   public barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     scales: {
@@ -74,7 +72,11 @@ export class HomeComponent implements OnInit {
       borderColor: []
     }]
   };
-  constructor(private homeService: HomeService) { }
+
+  constructor(
+    private homeService: HomeService,
+    public toast: ToastService
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -82,7 +84,6 @@ export class HomeComponent implements OnInit {
 
   loadDashboardData(): void {
     this.loading = true;
-    this.errorMessage = '';
     this.clearMessages();
 
     this.homeService.getAllInspections().subscribe({
@@ -146,27 +147,27 @@ export class HomeComponent implements OnInit {
 
         this.showCharts = true;
         this.loading = false;
+        this.toast.show('Dashboard data loaded successfully!', 'success');
       },
       error: (error) => {
         console.error('Error loading inspections:', error);
-        this.errorMessage = 'Failed to load dashboard data';
         this.loading = false;
         this.showCharts = false;
+        this.toast.show('Failed to load dashboard data', 'error');
       }
     });
   }
 
   private clearMessages(): void {
-    this.errorMessage = '';
+    // No longer needed if using toast, but you can keep for future expansion
   }
 
   retryLoadData(): void {
-    this.clearMessages();
     this.loadDashboardData();
+    this.toast.show('Retrying dashboard data load...', 'error');
   }
 
   private getMonthlyCounts(items: InboundRailcar[], field: 'inspectedDate' | 'repaired' | 'badOrdered'): number[] {
-    // Get the last 5 months (including current)
     const months = this.getLastMonths(5);
     const counts = months.map(month => {
       return items.filter(item => {
