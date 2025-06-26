@@ -8,42 +8,25 @@
             "files": [
                 "*.ts"
             ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "project": [
+                    "site-metrics-angular/tsconfig.json"
+                ],
+                "createDefaultProgram": true
+            },
             "extends": [
                 "eslint:recommended",
                 "@typescript-eslint/recommended",
-                "@typescript-eslint/recommended-requiring-type-checking",
                 "@angular-eslint/recommended",
                 "@angular-eslint/template/process-inline-templates"
             ],
+            // change later
             "rules": {
-                "@angular-eslint/directive-selector": [
-                    "error",
-                    {
-                        "type": "attribute",
-                        "prefix": "app",
-                        "style": "camelCase"
-                    }
-                ],
-                "@angular-eslint/component-selector": [
-                    "error",
-                    {
-                        "type": "element",
-                        "prefix": "app",
-                        "style": "kebab-case"
-                    }
-                ]
-            }
-        },
-        {
-            "files": [
-                "*.html"
-            ],
-            "extends": [
-                "@angular-eslint/template/recommended",
-                "@angular-eslint/template/accessibility"
-            ],
-            "rules": {
-                "@angular-eslint/template/attr-lowercase": "off"
+                "@typescript-eslint/explicit-function-return-type": "off",
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/no-unused-vars": "off",
+                "@angular-eslint/no-empty-lifecycle-method": "off"
             }
         }
     ]

@@ -1,0 +1,190 @@
+.modern-inspections-table {
+    --bs-table-hover-bg: rgba(0, 0, 0, 0.02);
+    table-layout: fixed;
+    width: 100%;
+}
+
+.modern-inspections-table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    position: relative;
+}
+
+.modern-inspections-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.modern-inspections-table tbody tr:hover {
+    background-color: var(--bs-table-hover-bg);
+}
+
+/* Fixed height containers to prevent shifting */
+.action-container {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cell-container {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.cell-content {
+    display: block;
+    min-height: 20px;
+    line-height: 1.4;
+}
+
+/* Row States */
+.editing-row {
+    background-color: #e3f2fd !important;
+    border-left: 3px solid #2196f3;
+}
+
+.selected-row {
+    background-color: #f3e5f5 !important;
+}
+
+.bad-order-row {
+    background-color: #ffebee !important;
+    border-left: 3px solid #f44336;
+}
+
+/* Sort Header Improvements */
+.sortable-header {
+    user-select: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.sort-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    justify-content: center;
+}
+
+.sort-icon {
+    font-size: 16px;
+    opacity: 0.3;
+    position: absolute;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.sort-icon:hover {
+    opacity: 0.6;
+}
+
+.sortable-header:hover .sort-icon {
+    opacity: 0.6;
+}
+
+.sort-indicator {
+    position: absolute;
+    color: #2196f3;
+    font-weight: bold;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.sort-indicator.visible {
+    opacity: 1;
+}
+
+/* Modern Input Styles */
+.modern-input {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    height: 32px;
+}
+
+.modern-input:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.125rem rgba(13, 110, 253, 0.25);
+}
+
+.modern-input:disabled {
+    background-color: #e9ecef;
+    opacity: 0.65;
+}
+
+/* Form Controls */
+.form-check-input {
+    border-radius: 3px;
+    border-width: 1px;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Button Improvements */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.775rem;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modern-inspections-table {
+        font-size: 0.8rem;
+        max-height: calc(100vh - 150px);
+
+    }
+
+    .modern-inspections-table th,
+    .modern-inspections-table td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .action-container {
+        height: 35px;
+    }
+
+    .cell-container {
+        min-height: 32px;
+    }
+}
+
+/* Prevent text selection on sortable headers */
+.sortable-header * {
+    user-select: none;
+}
+
+/* Smooth transitions for all interactive elements */
+.table-row {
+    transition: all 0.15s ease-in-out;
+}
+
+.form-check-input,
+.btn,
+.modern-input {
+    transition: all 0.15s ease-in-out;
+}
