@@ -1,63 +1,186 @@
 <!-- Bad Orders Table -->
-<div class="table-responsive">
-    <table class="table table-hover" id="activeBadOrdersTable">
-        <thead>
-            <tr>
-                <th (click)="onSetSort('carMark')" style="cursor:pointer">
-                    Car Mark
-                    <span *ngIf="pagination.sortColumn === 'carMark'">
-                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
-                </th>
-                <th (click)="onSetSort('carNumber')" style="cursor:pointer">
-                    Car Number
-                    <span *ngIf="pagination.sortColumn === 'carNumber'">
-                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
-                </th>
-                <!-- <th (click)="setSort('isEmpty')" style="cursor:pointer">
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 modern-inspections-table" id="activeBadOrdersTable">
+            <thead class="table-light">
+                <tr>
+                    <th class="text-center border-0 py-3" style="width: 80px;">
+                        <div class="d-flex flex-column align-items-center gap-1">
+                            <input aria-label="Select all inspections" class="form-check-input" type="checkbox"
+                                [checked]="selectAll" (change)="onToggleSelectAll()" />
+                            <small class="text-muted fw-normal" style="font-size: 10px;">All</small>
+                        </div>
+                    </th>
+                    <th class="border-0 py-3 sortable-header" (click)="onSetSort('carMark')"
+                        style="cursor:pointer; min-width: 120px;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="fw-semibold">Car Mark</span>
+                            <div class="sort-container">
+                                <i *ngIf="sortColumn !== 'carMark' || sortDirection === ''"
+                                    class="material-icons-outlined sort-icon">unfold_more</i>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'carMark' && sortDirection === 'asc'">▲</span>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'carMark' && sortDirection === 'desc'">▼</span>
+                            </div>
+                        </div>
+                    </th>
+                    <th class="border-0 py-3 sortable-header" (click)="onSetSort('carNumber')"
+                        style="cursor:pointer; min-width: 120px;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="fw-semibold">Car Number</span>
+                            <div class="sort-container">
+                                <i *ngIf="sortColumn !== 'carNumber' || sortDirection === ''"
+                                    class="material-icons-outlined sort-icon">unfold_more</i>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'carNumber' && sortDirection === 'asc'">▲</span>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'carNumber' && sortDirection === 'desc'">▼</span>
+                            </div>
+                        </div>
+                    </th>
+                    <!-- <th (click)="setSort('isEmpty')" style="cursor:pointer">
                     E/L
                     <span *ngIf="pagination.sortColumn === 'isEmpty'">
                         {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
                     </span>
                 </th> -->
-                <th (click)="onSetSort('badOrderDate')" style="cursor:pointer">
-                    Bad Ordered Date
-                    <span *ngIf="pagination.sortColumn === 'badOrderDate'">
-                        {{ pagination.sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
-                </th>
-                <th style="min-width: 200px;">Bad Order Description</th>
-                <th class="text-end">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let row of pagedData">
-                <td class="fw-medium">{{ row.carMark }}</td>
-                <td>{{ row.carNumber }}</td>
-                <!-- <td>
-                    <span class="badge bg-secondary">{{ row.isEmpty ? 'E' : 'L' }}</span>
-                </td> -->
-                <td>{{ row.badOrderedRailcar?.badOrderDate }}</td>
-                <td>{{ row.badOrderedRailcar?.badOrderDescription }}</td>
-                <td class="text-end">
-                    <div class="position-relative">
-                        <button
-                            (click)="toggleDatePicker(row)"
-                            aria-label="Resolve Bad Order" class="btn btn-sm btn-success p-1 ms-1" type="button">
-                            <span class="material-icons-outlined">check_circle</span>
-                        </button>
-
-                        <div *ngIf="isDatePickerOpen(row)" class="mt-2">
-                            <input type="date" class="form-control form-control-sm" [ngModel]="row.badOrderedRailcar?.repairedDate"
-                                (ngModelChange)="onRepairDateChange($event, row)"
-                                (blur)="closeDatePicker(row)" autofocus />
+                    <th class="border-0 py-3 sortable-header" (click)="onSetSort('badOrderDate')"
+                        style="cursor:pointer; min-width: 120px;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="fw-semibold">Bad Order Date</span>
+                            <div class="sort-container">
+                                <i *ngIf="sortColumn !== 'badOrderDate' || sortDirection === ''"
+                                    class="material-icons-outlined sort-icon">unfold_more</i>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'asc'">▲</span>
+                                <span class="sort-indicator visible"
+                                    *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'desc'">▼</span>
+                            </div>
                         </div>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                    </th>
+                    <th class="border-0 py-3" style="min-width: 200px; width: 200px;">
+                        <span class="fw-semibold">Bad Order Description</span>
+                    </th>
+                    <th class="text-end border-0 py-3">
+                        <span class="fw-semibold">Mark As Repaired</span>
+                        <span class="material-icons-outlined text-secondary" style="font-size: 14px;"
+                            title="Click to resolve bad order">check_circle</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="pagedData as badOrders; else loading">
+                    <tr *ngIf="badOrders.length === 0" class="text-center">
+                        <td colspan="10" class="py-5">
+                            <span class="text-muted">No bad orders found.</span>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let row of badOrders" [ngClass]="{
+        'selected-row': selectedRows.has(row.badOrderId)
+      }" class="table-row">
+
+                        <!-- Actions Column -->
+                        <td class="text-center align-middle py-3" style="width: 80px;">
+                            <div class="action-container">
+                                <div class="d-flex flex-column align-items-center gap-1">
+                                    <!-- Checkbox: always present, checked and disabled in edit mode -->
+                                    <input aria-label="Select bad order" class="form-check-input" type="checkbox"
+                                        [checked]="selectedRows.has(row.badOrderId)"
+                                        [disabled]="selectedRows.has(row.badOrderId)"
+                                        (change)="!selectedRows.has(row.badOrderId) && onToggleSelect(row.badOrderId)" />
+
+                                    <!-- Button: Edit or Cancel depending on state -->
+                                    <button *ngIf="!selectedRows.has(row.badOrderId); else cancelBtn"
+                                        class="btn btn-outline-primary btn-sm px-2 py-0"
+                                        (click)="onToggleSelect(row.badOrderId)" title="Edit row"
+                                        style="font-size: 10px; line-height: 1;">
+                                        Edit
+                                    </button>
+                                    <ng-template #cancelBtn>
+                                        <button class="btn btn-outline-danger btn-sm px-2 py-0"
+                                            (click)="onCancelEdit(row.badOrderId)" title="Cancel edit"
+                                            style="font-size: 10px; line-height: 1;">
+                                            Cancel
+                                        </button>
+                                    </ng-template>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="align-middle py-3 fw-medium" style="min-width: 120px;">
+                            <div class="cell-container">
+                                <input *ngIf="selectedRows.has(row.badOrderId)" [(ngModel)]="row.carMark"
+                                    class="form-control form-control-sm modern-input">
+                                <span *ngIf="!selectedRows.has(row.badOrderId)" class="cell-content">
+                                    {{ row.carMark || '-' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="align-middle py-3" style="min-width: 130px;">
+                            <div class="cell-container">
+                                <input *ngIf="selectedRows.has(row.badOrderId)" [(ngModel)]="row.carNumber"
+                                    type="number" class="form-control form-control-sm modern-input">
+                                <span *ngIf="!selectedRows.has(row.badOrderId)" class="cell-content">
+                                    {{ row.carNumber || '-' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="align-middle py-3" style="min-width: 130px;">
+                            <div class="cell-container">
+                                <input *ngIf="selectedRows.has(row.badOrderId)" [(ngModel)]="row.badOrderDate"
+                                    type="date" class="form-control form-control-sm modern-input">
+                                <span *ngIf="!selectedRows.has(row.badOrderId)" class="cell-content">
+                                    {{ row.badOrderDate || '-' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="align-middle py-3" style="min-width: 200px; width: 200px;">
+                            <div class="cell-container">
+                                <input *ngIf="selectedRows.has(row.badOrderId)" [(ngModel)]="row.badOrderDescription"
+                                    class="form-control form-control-sm modern-input"
+                                    placeholder="Enter bad order description">
+                                <span *ngIf="!selectedRows.has(row.badOrderId)" class="cell-content"
+                                    [class.text-muted]="!row.badOrderDescription">
+                                    {{ row.badOrderDescription || '-' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Resolve/Repair Date Column -->
+                        <td class="text-end align-middle py-3" style="min-width: 120px;">
+                            <ng-container *ngIf="isDatePickerOpen(row); else showButton">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="date" class="form-control form-control-sm" [ngModel]="row.repairedDate"
+                                        (ngModelChange)="onRepairDateChange($event, row)" />
+                                    <button type="button" class="btn btn-outline-secondary btn-sm px-2 py-0"
+                                        (click)="closeDatePicker(row)" title="Close">
+                                        <span class="material-icons-outlined" style="font-size:16px;">close</span>
+                                    </button>
+                                </div>
+                            </ng-container>
+                            <ng-template #showButton>
+                                <button (click)="toggleDatePicker(row)" aria-label="Resolve Bad Order"
+                                    class="btn btn-sm btn-success p-1 ms-1" type="button">
+                                    <span class="material-icons-outlined">calendar_today</span>
+                                </button>
+                            </ng-template>
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #loading>
+                    <tr>
+                        <td colspan="10" class="py-5 text-center">
+                            <span class="text-muted">Loading...</span>
+                        </td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Pagination for bad orders Tab -->

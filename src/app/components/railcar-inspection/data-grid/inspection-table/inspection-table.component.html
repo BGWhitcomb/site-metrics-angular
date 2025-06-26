@@ -1,10 +1,14 @@
 <!-- Inspections Tab Content -->
 <div class="tab-pane fade show active" id="inspections-content" role="tabpanel" aria-labelledby="inspections-tab">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h4 text-dark mb-0 fw-semibold">Inspections</h2>
-        <div class="d-flex flex-column align-items-end">
-            <button class="btn btn-primary d-flex gap-2 mb-1" (click)="onAddClick()">
-                <span class="material-icons-outlined">add</span>
+    <div class="position-relative mb-3" style="min-height: 48px;">
+        <h2 class="h3 text-center text-muted mb-0 position-absolute top-50 start-50 translate-middle"
+            style="z-index:1;">
+            Inspections
+        </h2>
+        <div class="position-absolute end-0 top-0 d-flex flex-column align-items-end" style="z-index:2;">
+            <button class="btn btn-primary btn-sm d-flex gap-2 align-items-center mb-1" (click)="onAddClick()"
+                style="font-size: 0.85rem; padding: 0.25rem 0.75rem;">
+                <span class="material-icons-outlined" style="font-size: 18px;">add</span>
                 New Inspection
             </button>
             <span class="text-muted small" style="min-height: 1.5em;">
@@ -27,73 +31,77 @@
                                 <small class="text-muted fw-normal" style="font-size: 10px;">All</small>
                             </div>
                         </th>
-
                         <th class="border-0 py-3 sortable-header" (click)="onSetSort('carMark')"
                             style="cursor:pointer; min-width: 120px;">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold">Car Mark</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'carMark'"
+                                    <i *ngIf="sortColumn !== 'carMark' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'carMark'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'carMark' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'carMark' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
 
                         <th class="border-0 py-3 sortable-header" (click)="onSetSort('carNumber')"
-                            style="cursor:pointer; min-width: 130px;">
+                            style="cursor:pointer; min-width: 120px;">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold">Car Number</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'carNumber'"
+                                    <i *ngIf="sortColumn !== 'carNumber' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'carNumber'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'carNumber' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'carNumber' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
 
                         <th class="border-0 py-3 sortable-header" (click)="onSetSort('inspectedDate')"
-                            style="cursor:pointer; min-width: 130px;">
+                            style="cursor:pointer; min-width: 120px;">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold">Inspected</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'inspectedDate'"
+                                    <i *ngIf="sortColumn !== 'inspectedDate' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'inspectedDate'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'inspectedDate' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'inspectedDate' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
 
-                        <th class="border-0 py-3 text-center sortable-header" (click)="onSetSort('isEmpty')"
-                            style="cursor:pointer; min-width: 80px;">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
-                                <span class="fw-semibold">E/L</span>
+                        <th class="border-0 py-3 sortable-header" (click)="onSetSort('isEmpty')"
+                            style="cursor:pointer; min-width: 120px;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-semibold">EMPTY/LOADED</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'isEmpty'"
+                                    <i *ngIf="sortColumn !== 'isEmpty' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'isEmpty'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'isEmpty' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'isEmpty' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
 
-                        <th class="border-0 py-3 text-center sortable-header" (click)="onSetSort('isRepaired')"
-                            style="cursor:pointer; min-width: 100px;">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
+                        <th class="border-0 py-3 sortable-header" (click)="onSetSort('isRepaired')"
+                            style="cursor:pointer; min-width: 120px;">
+                            <div class="d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold">Repaired</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'isRepaired'"
+                                    <i *ngIf="sortColumn !== 'isRepaired' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'isRepaired'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'isRepaired' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'isRepaired' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
@@ -105,17 +113,18 @@
                         <th class="border-0 py-3 text-center" style="min-width: 100px;">
                             <span class="fw-semibold">Bad Ordered</span>
                         </th>
-
-                        <th class="border-0 py-3 text-center sortable-header" (click)="onSetSort('badOrderDate')"
-                            style="cursor:pointer; min-width: 110px;">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
+                        <!-- might need to access badOrderedDate through pagination bad orders?-->
+                        <th class="border-0 py-3 sortable-header" (click)="onSetSort('badOrderedDate')"
+                            style="cursor:pointer; min-width: 120px;">
+                            <div class="d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold">BO Date</span>
                                 <div class="sort-container">
-                                    <i *ngIf="sortColumn !== 'badOrderDate'"
+                                    <i *ngIf="sortColumn !== 'badOrderedDate' || sortDirection === ''"
                                         class="material-icons-outlined sort-icon">unfold_more</i>
-                                    <span class="sort-indicator" [class.visible]="sortColumn === 'badOrderDate'">
-                                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                                    </span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'badOrderedDate' && sortDirection === 'asc'">▲</span>
+                                    <span class="sort-indicator visible"
+                                        *ngIf="sortColumn === 'badOrderedDate' && sortDirection === 'desc'">▼</span>
                                 </div>
                             </div>
                         </th>
@@ -126,127 +135,142 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let row of pagedData; let i = index" [ngClass]="{
-            'bad-order-row': row.badOrdered,  
-            'selected-row': selectedRows.has(row.inboundId)
-          }" class="table-row">
+                    <ng-container *ngIf="pagedData as inspections; else loading">
+                        <tr *ngIf="inspections.length === 0" class="text-center">
+                            <td colspan="10" class="py-5">
+                                <span class="text-muted">No inspections found</span>
+                            </td>
+                        </tr>
+                        <tr *ngFor="let row of inspections" [ngClass]="{
+      'bad-order-row': row.badOrdered,  
+      'selected-row': selectedRows.has(row.inboundId)
+    }" class="table-row">
 
-                        <!-- Actions Column should i remove?? keep checkbox instead of buttons? -->
-                        <td class="text-center align-middle py-3" style="width: 80px;">
-                            <div class="action-container">
-                                <div class="d-flex flex-column align-items-center gap-1">
-                                    <!-- Checkbox: always present, checked and disabled in edit mode -->
-                                    <input aria-label="Select inspection" class="form-check-input" type="checkbox"
-                                        [checked]="selectedRows.has(row.inboundId)"
-                                        [disabled]="selectedRows.has(row.inboundId)"
-                                        (change)="!selectedRows.has(row.inboundId) && onToggleSelect(row.inboundId)" />
+                            <!-- Actions Column  -->
+                            <td class="text-center align-middle py-3" style="width: 80px;">
+                                <div class="action-container">
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <!-- Checkbox: always present, checked and disabled in edit mode -->
+                                        <input aria-label="Select inspection" class="form-check-input" type="checkbox"
+                                            [checked]="selectedRows.has(row.inboundId)"
+                                            [disabled]="selectedRows.has(row.inboundId)"
+                                            (change)="!selectedRows.has(row.inboundId) && onToggleSelect(row.inboundId)" />
 
-                                    <!-- Button: Edit or Cancel depending on state -->
-                                    <button *ngIf="!selectedRows.has(row.inboundId); else cancelBtn"
-                                        class="btn btn-outline-primary btn-sm px-2 py-0"
-                                        (click)="onToggleSelect(row.inboundId)" title="Edit row"
-                                        style="font-size: 10px; line-height: 1;">
-                                        Edit
-                                    </button>
-                                    <ng-template #cancelBtn>
-                                        <button class="btn btn-outline-danger btn-sm px-2 py-0"
-                                            (click)="onCancelEdit(row.inboundId)" title="Cancel edit"
+                                        <!-- Button: Edit or Cancel depending on state -->
+                                        <button *ngIf="!selectedRows.has(row.inboundId); else cancelBtn"
+                                            class="btn btn-outline-primary btn-sm px-2 py-0"
+                                            (click)="onToggleSelect(row.inboundId)" title="Edit row"
                                             style="font-size: 10px; line-height: 1;">
-                                            Cancel
+                                            Edit
                                         </button>
-                                    </ng-template>
+                                        <ng-template #cancelBtn>
+                                            <button class="btn btn-outline-danger btn-sm px-2 py-0"
+                                                (click)="onCancelEdit(row.inboundId)" title="Cancel edit"
+                                                style="font-size: 10px; line-height: 1;">
+                                                Cancel
+                                            </button>
+                                        </ng-template>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="align-middle py-3 fw-medium" style="min-width: 120px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.carMark"
-                                    class="form-control form-control-sm modern-input">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
-                                    {{ row.carMark || '-' }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="align-middle py-3" style="min-width: 130px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.carNumber" type="number"
-                                    class="form-control form-control-sm modern-input">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
-                                    {{ row.carNumber || '-' }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="align-middle py-3" style="min-width: 130px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.inspectedDate"
-                                    type="date" class="form-control form-control-sm modern-input">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
-                                    {{ row.inspectedDate || '-' }}
-                                </span>
-                            </div>
-                        </td>
+                            </td>
+                            <td class="align-middle py-3 fw-medium" style="min-width: 120px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.carMark"
+                                        class="form-control form-control-sm modern-input">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
+                                        {{ row.carMark || '-' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="align-middle py-3" style="min-width: 130px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.carNumber"
+                                        type="number" class="form-control form-control-sm modern-input">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
+                                        {{ row.carNumber || '-' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="align-middle py-3" style="min-width: 130px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.inspectedDate"
+                                        type="date" class="form-control form-control-sm modern-input">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
+                                        {{ row.inspectedDate || '-' }}
+                                    </span>
+                                </div>
+                            </td>
 
-                        <td class="text-center align-middle py-3" style="min-width: 80px;">
-                            <div class="form-check form-check-inline d-flex justify-content-center">
-                                <input type="checkbox" class="form-check-input" [id]="'isEmpty-' + row.inboundId"
-                                    *ngIf="selectedRows.has(row.inboundId)" (change)="onToggleLoadStatus(row)"
-                                    [title]="row.isEmpty ? 'Empty' : 'Loaded'">
-                                <label class="form-check-label small ms-1" [for]="'isEmpty-' + row.inboundId">
-                                    {{ row.isEmpty ? 'E' : 'L' }}
-                                </label>
-                            </div>
-                        </td>
-                        <td class="text-center align-middle py-3" style="min-width: 100px;">
-                            <div class="form-check d-flex justify-content-center">
-                                <input [(ngModel)]="row.isRepaired" type="checkbox" class="form-check-input"
-                                    [id]="'isRepaired-' + row.inboundId" (change)="onToggleRepaired(row.inboundId)"
-                                    [disabled]="!selectedRows.has(row.inboundId)">
-                            </div>
-                        </td>
-                        <td class="align-middle py-3" style="min-width: 200px; width: 200px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.repairDescription"
-                                    class="form-control form-control-sm modern-input" [disabled]="!row.isRepaired"
-                                    placeholder="Enter repair description">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content"
-                                    [class.text-muted]="!row.repairDescription">
-                                    {{ row.repairDescription }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="text-center align-middle py-3" style="min-width: 100px;">
-                            <div class="form-check d-flex justify-content-center">
-                                <input [(ngModel)]="row.badOrdered" type="checkbox" class="form-check-input"
-                                    [id]="'badOrdered-' + row.inboundId" [disabled]="!selectedRows.has(row.inboundId)">
-                            </div>
-                        </td>
-                        <td class="align-middle py-3" style="min-width: 110px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)"
-                                    [ngModel]="row.badOrderedRailcar?.badOrderDate"
-                                    (ngModelChange)="onBadOrderDateUpdate($event, row)" type="date"
-                                    class="form-control form-control-sm modern-input" [disabled]="!row.badOrdered">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
-                                    {{ row.badOrderedRailcar?.badOrderDate || '-' }}
-                                </span>
-                            </div>
-                        </td>
-                        <td class="align-middle py-3" style="min-width: 200px; width: 200px;">
-                            <div class="cell-container">
-                                <input *ngIf="selectedRows.has(row.inboundId)"
-                                    [ngModel]="row.badOrderedRailcar?.badOrderDescription"
-                                    (ngModelChange)="onBadOrderDescriptionUpdate($event, row)"
-                                    class="form-control form-control-sm modern-input" [disabled]="!row.badOrdered"
-                                    placeholder="Enter bad order description">
-                                <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content"
-                                    [class.text-muted]="!row.badOrderedRailcar?.badOrderDescription">
-                                    {{ row.badOrderedRailcar?.badOrderDescription || '-' }}
-                                </span>
-                            </div>
-                        </td>
-                    </tr>
+                            <td class="text-center align-middle py-3" style="min-width: 80px;">
+                                <div class="form-check form-check-inline d-flex justify-content-center">
+                                    <input type="checkbox" class="form-check-input" [id]="'isEmpty-' + row.inboundId"
+                                        *ngIf="selectedRows.has(row.inboundId)" (change)="onToggleLoadStatus(row)"
+                                        [title]="row.isEmpty ? 'Empty' : 'Loaded'">
+                                    <label class="form-check-label small ms-1" [for]="'isEmpty-' + row.inboundId">
+                                        {{ row.isEmpty ? 'E' : 'L' }}
+                                    </label>
+                                </div>
+                            </td>
+                            <td class="text-center align-middle py-3" style="min-width: 100px;">
+                                <div class="form-check d-flex justify-content-center">
+                                    <input [(ngModel)]="row.isRepaired" type="checkbox" class="form-check-input"
+                                        [id]="'isRepaired-' + row.inboundId" (change)="onToggleRepaired(row.inboundId)"
+                                        [disabled]="!selectedRows.has(row.inboundId)">
+                                </div>
+                            </td>
+                            <td class="align-middle py-3" style="min-width: 200px; width: 200px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)" [(ngModel)]="row.repairDescription"
+                                        class="form-control form-control-sm modern-input" [disabled]="!row.isRepaired"
+                                        placeholder="Enter repair description">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content"
+                                        [class.text-muted]="!row.repairDescription">
+                                        {{ row.repairDescription }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="text-center align-middle py-3" style="min-width: 100px;">
+                                <div class="form-check d-flex justify-content-center">
+                                    <input [(ngModel)]="row.badOrdered" type="checkbox" class="form-check-input"
+                                        [id]="'badOrdered-' + row.inboundId"
+                                        [disabled]="!selectedRows.has(row.inboundId)">
+                                </div>
+                            </td>
+                            <td class="align-middle py-3" style="min-width: 110px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)"
+                                        [ngModel]="row.badOrderedRailcar?.badOrderDate"
+                                        (ngModelChange)="onBadOrderDateUpdate($event, row)" type="date"
+                                        class="form-control form-control-sm modern-input" [disabled]="!row.badOrdered">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content">
+                                        {{ row.badOrderedRailcar?.badOrderDate || '-' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="align-middle py-3" style="min-width: 200px; width: 200px;">
+                                <div class="cell-container">
+                                    <input *ngIf="selectedRows.has(row.inboundId)"
+                                        [ngModel]="row.badOrderedRailcar?.badOrderDescription"
+                                        (ngModelChange)="onBadOrderDescriptionUpdate($event, row)"
+                                        class="form-control form-control-sm modern-input" [disabled]="!row.badOrdered"
+                                        placeholder="Enter bad order description">
+                                    <span *ngIf="!selectedRows.has(row.inboundId)" class="cell-content"
+                                        [class.text-muted]="!row.badOrderedRailcar?.badOrderDescription">
+                                        {{ row.badOrderedRailcar?.badOrderDescription || '-' }}
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-container>
                 </tbody>
             </table>
+            <ng-template #loading>
+                <tr>
+                    <td colspan="10" class="text-center py-5">
+                        <span class="text-muted">Loading...</span>
+                    </td>
+                </tr>
+            </ng-template>
         </div>
     </div>
 </div>

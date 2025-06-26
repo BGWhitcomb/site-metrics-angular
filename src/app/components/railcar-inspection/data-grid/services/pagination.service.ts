@@ -5,7 +5,7 @@ export class PaginationService<T> {
   page = 1;
   pageSize = 50;
   sortColumn = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  sortDirection: 'asc' | 'desc' | '' = 'asc';
 
   getPagedData(data: T[]): T[] {
     let sorted = this.sortColumn ? this.sortData(data) : data;
@@ -18,11 +18,17 @@ export class PaginationService<T> {
   }
 
   setSort(column: string) {
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
+    if (this.sortColumn !== column) {
       this.sortColumn = column;
       this.sortDirection = 'asc';
+    } else {
+      if (this.sortDirection === '') {
+        this.sortDirection = 'asc';
+      } else if (this.sortDirection === 'asc') {
+        this.sortDirection = 'desc';
+      } else if (this.sortDirection === 'desc') {
+        this.sortDirection = '';
+      }
     }
     this.page = 1;
   }

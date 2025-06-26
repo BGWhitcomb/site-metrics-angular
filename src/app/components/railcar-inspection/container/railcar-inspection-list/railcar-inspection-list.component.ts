@@ -1,12 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { InspectionService } from 'src/app/services/inspection.service';
-import { InboundRailcar } from '../../models/inbound-railcar';
-import { BadOrderedRailcar } from '../../models/bad-ordered-railcar';
-import { finalize, Subject, takeUntil } from 'rxjs';
+import { InboundRailcar, BadOrderedRailcar } from '../../models/inspections';
+import { finalize, Subject, takeUntil, Subscription } from 'rxjs';
 import { PaginationService } from '../../data-grid/services/pagination.service';
 import { ToastService } from 'src/app/services/toast.service';
 import { RowEditingService } from '../../data-grid/services/row-editing.service';
-import { InspectionQueue } from '../../models/inspection-queue';
+import { ExportService } from '../../data-grid/services/export.service';
 
 type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
 
@@ -17,30 +16,27 @@ type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
   providers: [PaginationService]
 })
 export class RailcarInspectionListComponent implements OnInit, OnDestroy {
-  queue: InspectionQueue = { new: [], modified: [] };
-  inspections: InboundRailcar[] = [];
-  badOrders: BadOrderedRailcar[] = [];
-  allBadOrders: BadOrderedRailcar[] = [];
-  rowBackups: Map<number, InboundRailcar> = new Map();
-  selectedRows: Set<number> = new Set();
 
-  selectAll: boolean = false;
   loading = false;
   public Math = Math;
-
   activeTab: TabType = 'inspections';
   private destroy$ = new Subject<void>();
 
   constructor(
     private inspectionService: InspectionService,
-    public pagination: PaginationService<InboundRailcar>,
+    public paginationInspection: PaginationService<InboundRailcar>,
+    public paginationBadOrders: PaginationService<BadOrderedRailcar>,
     public toast: ToastService,
-    public edit: RowEditingService
+    public edit: RowEditingService,
+    public exp: ExportService
   ) { }
 
   ngOnInit() {
-    this.pagination.sortColumn = 'inspectedDate';
-    this.pagination.sortDirection = 'desc';
+    this.paginationInspection.setPage(1, this.getCurrentTabData());
+    this.paginationBadOrders.setPage(1, this.getCurrentTabData());
+
+    this.paginationInspection.sortColumn = 'inspectedDate';
+    this.paginationInspection.sortDirection = 'desc';
     this.loadDataForActiveTab();
   }
 
@@ -49,27 +45,66 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // --- Getters for SSOT state ---
+  get inspections() { return this.edit.inspections; }
+  get badOrders() { return this.edit.badOrders; }
+  get allBadOrders() { return this.edit.badOrders; }
+  get selectedRows() { return this.edit.selectedRows; }
+  get deletedRows() { return this.edit.deletedRows; }
+  get rowBackups() { return this.edit.rowBackups; }
+  get boRowBackups() { return this.edit.boRowBackups; }
+  get queue() { return this.edit.inspectionQueue; }
+  get badOrderQueue() { return this.edit.badOrderQueue; }
+  get selectAll() { return this.edit.selectAll; }
+  set selectAll(val: boolean) { this.edit.selectAll = val; }
+
   private getCurrentTabData(): any[] {
     switch (this.activeTab) {
       case 'inspections': return this.inspections;
-      case 'bad-orders': return this.badOrders.filter(order => order.isActive);
+      case 'bad-orders': return this.activeBadOrders;
       case 'all-bad-orders': return this.allBadOrders;
       default: return [];
     }
   }
 
-  // Bad order table methods
-
-  resolveBadOrder(row: InboundRailcar, newDate: string): void {
-    this.edit.resolveBadOrder(row, newDate);
-    this.pagination.setPage(1, this.getCurrentTabData());
-    this.toast.show('Bad order resolved successfully', 'success');
+  // --- Bad order table methods ---
+  resolveBadOrder(row: BadOrderedRailcar, newDate: string): void {
+    this.edit.resolveBadOrder(row, newDate).subscribe({
+      next: () => {
+        this.paginationBadOrders.setPage(1, this.getCurrentTabData());
+        this.toast.show('Bad order resolved successfully', 'success');
+      },
+      error: (err) => {
+        this.toast.show('Failed to resolve bad order: ' + err.message, 'error');
+      }
+    });
   }
 
-  // Inspection table methods
+  exportBadOrders(): void {
+    this.exp.exportBadOrders(this.edit.badOrders);
+  }
+
+  // onToggleBadOrderSelect(inboundId: number): void {
+  //   this.edit.toggleSelect(inboundId, this.badOrders, this.selectedRows, this.rowBackups);
+  // }
+  // onToggleBadOrderSelectAll(pagedData: BadOrderedRailcar[]): void {
+  //   this.edit.toggleSelectAll(pagedData, this.selectedRows);
+  // }
+  // newBadOrderDate(event: { newDate: string, row: BadOrderedRailcar }): void {
+  //   this.edit.updateBadOrderDate(event.row, event.newDate);
+  // }
+  // newBadOrderDescription(event: { newDescription: string, row: BadOrderedRailcar }): void {
+  //   this.edit.updateBadOrderDescription(event.row, event.newDescription);
+  // }
+  // cancelBadOrderEdit(badOrderId: number): void {
+  //   this.edit.cancelBadOrderEdit(badOrderId, this.badOrders, this.selectedRows, this.rowBackups, this.queue);
+  //   this.pagination.setPage(1, this.getCurrentTabData());
+  // }
+
+  // --- Inspection table methods ---
   addNewInspection(): void {
     this.edit.addNewRow(this.inspections, this.selectedRows);
-    this.pagination.setPage(1, this.inspections);
+    this.paginationInspection.setPage(1, this.inspections);
   }
 
   updateBadOrderDate(event: { newDate: string, row: InboundRailcar }): void {
@@ -88,8 +123,6 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.edit.toggleSelectAll(pagedData, this.selectedRows);
   }
 
-
-  // removed this button to use the action bar instead
   onSaveIndividualRow(inboundId: number) {
     this.edit.saveIndividualRow(inboundId, this.inspections, this.selectedRows, this.rowBackups, this.queue);
   }
@@ -110,22 +143,14 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.edit.toggleLoadStatus(row);
   }
 
-  // Tab and data helpers
+  // --- Tab and data helpers ---
   setTab(tab: TabType) {
     this.activeTab = tab;
-    this.pagination.page = 1;
+    this.paginationInspection.page = 1;
     this.loadDataForActiveTab();
   }
 
-  onSetSort(column: string) {
-    this.pagination.setSort(column);
-  }
-
-  onSetPage(page: number) {
-    this.pagination.setPage(page, this.getCurrentTabData());
-  }
-
-  // Action Bar Methods
+  // --- Action Bar Methods ---
   cancelAllEdits(): void {
     this.edit.cancelAllEdits(this.inspections, this.selectedRows, this.rowBackups, this.queue);
     this.selectAll = false;
@@ -133,21 +158,14 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   }
 
   saveSelectedRows(): void {
-    this.edit.saveSelectedRows(this.inspections, this.selectedRows, this.rowBackups, this.queue);
+    this.edit.saveSelectedRows(this.inspections, this.selectedRows, this.rowBackups, this.queue)
   }
 
   deleteSelectedRows(): void {
-    const result = this.edit.deleteInspections(this.inspections, this.selectedRows, this.rowBackups, this.queue);
-    if (result && typeof result.subscribe === 'function') {
-      result.subscribe({
-        next: () => {
-          this.edit.handleDeleteSuccess(
-            Array.from(this.selectedRows).map(id => this.inspections.find(row => row.inboundId === id)).filter(Boolean) as InboundRailcar[],
-            this.inspections,
-            this.selectedRows,
-            this.rowBackups,
-            this.queue
-          );
+    this.edit.deleteInspections(this.inspections, this.selectedRows, this.rowBackups, this.queue)
+      .subscribe({
+        next: (deletedRows) => {
+          this.edit.handleDeleteSuccess(deletedRows, this.inspections, this.selectedRows, this.rowBackups, this.queue);
           this.refreshCurrentTab();
         },
         error: () => {
@@ -155,16 +173,15 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
           this.edit.loading = false;
         }
       });
-    }
   }
 
   submitInspections(): void {
     this.edit.submitInspections(this.queue, this.selectedRows).subscribe({
       next: () => {
         this.toast.show('All changes saved successfully', 'success');
-        this.queue.new = [];
-        this.queue.modified = [];
-        this.selectedRows.clear();
+        this.edit.inspectionQueue.new = [];
+        this.edit.inspectionQueue.modified = [];
+        this.edit.selectedRows.clear();
         this.refreshCurrentTab();
       },
       error: (error) => {
@@ -174,11 +191,11 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     });
   }
 
-  get activeBadOrders(): InboundRailcar[] {
-    return this.inspections.filter(order => order.badOrderedRailcar?.isActive);
+  get activeBadOrders(): BadOrderedRailcar[] {
+    return this.badOrders.filter(order => order.isActive);
   }
 
-  // Data loading
+  // --- Data loading ---
   private loadInspections() {
     this.loading = true;
     this.inspectionService.getInspections()
@@ -188,7 +205,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: data => {
-          this.inspections = data;
+          this.edit.inspections = data;
           this.toast.show(`Loaded ${data.length} inspections`, "success");
         },
         error: err => {
@@ -207,7 +224,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: data => {
-          this.badOrders = data;
+          this.edit.badOrders = data;
           this.toast.show(`Loaded ${data.length} bad orders`, 'success');
         },
         error: err => {
@@ -226,7 +243,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: data => {
-          this.allBadOrders = data;
+          this.edit.badOrders = data;
           this.toast.show(`Loaded ${data.length} total bad orders`, 'success');
         },
         error: err => {
@@ -253,21 +270,21 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   private refreshCurrentTab() {
     switch (this.activeTab) {
       case 'inspections':
-        this.inspections = [];
+        this.edit.inspections = [];
         this.loadInspections();
         break;
       case 'bad-orders':
-        this.badOrders = [];
+        this.edit.badOrders = [];
         this.loadBadOrders();
         break;
       case 'all-bad-orders':
-        this.allBadOrders = [];
+        this.edit.badOrders = [];
         this.loadAllBadOrders();
         break;
     }
   }
 
-  // Keyboard navigation
+  // --- Keyboard navigation ---
   focusNext($event: KeyboardEvent): void {
     const target = $event.target as HTMLInputElement;
     const inputs = Array.from(document.querySelectorAll('input, select, textarea')) as HTMLInputElement[];
@@ -280,30 +297,77 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Getters for pagination state
+  // --- Getters for inspection pagination ---
   get pagedData() {
-    return this.pagination.getPagedData(this.getCurrentTabData());
+    return this.paginationInspection.getPagedData(this.getCurrentTabData());
   }
   get sortColumn(): string {
-    return this.pagination.sortColumn;
+    return this.paginationInspection.sortColumn;
   }
-  get sortDirection(): 'asc' | 'desc' {
-    return this.pagination.sortDirection;
+  get sortDirection(): 'asc' | 'desc' | '' {
+    return this.paginationInspection.sortDirection;
   }
   get page(): number {
-    return this.pagination.page;
+    return this.paginationInspection.page;
   }
   get totalPages(): number {
-    return this.pagination.getTotalPages(this.getCurrentTabData());
+    return this.paginationInspection.getTotalPages(this.getCurrentTabData());
   }
   get showingFrom(): number {
-    return this.pagination.getShowingFrom();
+    return this.paginationInspection.getShowingFrom();
   }
   get showingTo(): number {
-    return this.pagination.getShowingTo(this.getCurrentTabData());
+    return this.paginationInspection.getShowingTo(this.getCurrentTabData());
   }
 
-  // Getters for action bar state
+
+  // For badOrders table
+  get pagedBadOrders() {
+    return this.paginationBadOrders.getPagedData(this.getCurrentTabData());
+  }
+  get sortColumnBO(): string {
+    return this.paginationBadOrders.sortColumn;
+  }
+  get sortDirectionBO(): 'asc' | 'desc' | '' {
+    return this.paginationBadOrders.sortDirection;
+  }
+  get pageBO(): number {
+    return this.paginationBadOrders.page;
+  }
+  get totalPagesBO(): number {
+    return this.paginationBadOrders.getTotalPages(this.getCurrentTabData());
+  }
+  get showingFromBO(): number {
+    return this.paginationBadOrders.getShowingFrom();
+  }
+  get showingToBO(): number {
+    return this.paginationBadOrders.getShowingTo(this.getCurrentTabData());
+  }
+
+  // for allBadOrders table
+  get pagedAllBadOrders() {
+    return this.paginationBadOrders.getPagedData(this.getCurrentTabData());
+  }
+  get sortColumnAllBO(): string {
+    return this.paginationBadOrders.sortColumn;
+  }
+  get sortDirectionAllBO(): 'asc' | 'desc' | '' {
+    return this.paginationBadOrders.sortDirection;
+  }
+  get pageAllBO(): number {
+    return this.paginationBadOrders.page;
+  }
+  get totalPagesAllBO(): number {
+    return this.paginationBadOrders.getTotalPages(this.getCurrentTabData());
+  }
+  get showingFromAllBO(): number {
+    return this.paginationBadOrders.getShowingFrom();
+  }
+  get showingToAllBO(): number {
+    return this.paginationBadOrders.getShowingTo(this.getCurrentTabData());
+  }
+
+  // --- Getters for action bar state ---
   get isEditing(): boolean {
     return this.selectedRows.size > 0;
   }

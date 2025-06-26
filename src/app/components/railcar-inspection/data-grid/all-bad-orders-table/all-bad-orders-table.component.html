@@ -4,26 +4,63 @@
     <table class="table table-hover" id="allBadOrdersTable">
         <thead>
             <tr>
-                <th (click)="setSort('carMark')" style="cursor:pointer">
-                    Car Mark
-                    <span *ngIf="sortColumn === 'carMark'">
-                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
+                <th class="border-0 py-3 sortable-header" (click)="onSetSort('carMark')"
+                    style="cursor:pointer; min-width: 120px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-semibold">Car Mark</span>
+                        <div class="sort-container">
+                            <i *ngIf="sortColumn !== 'carMark' || sortDirection === ''"
+                                class="material-icons-outlined sort-icon">unfold_more</i>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'carMark' && sortDirection === 'asc'">▲</span>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'carMark' && sortDirection === 'desc'">▼</span>
+                        </div>
+                    </div>
                 </th>
-                <th (click)="setSort('carNumber')" style="cursor:pointer">
-                    Car Number
-                    <span *ngIf="sortColumn === 'carNumber'">
-                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
+                <th class="border-0 py-3 sortable-header" (click)="onSetSort('carNumber')"
+                    style="cursor:pointer; min-width: 120px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-semibold">Car Number</span>
+                        <div class="sort-container">
+                            <i *ngIf="sortColumn !== 'carNumber' || sortDirection === ''"
+                                class="material-icons-outlined sort-icon">unfold_more</i>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'carNumber' && sortDirection === 'asc'">▲</span>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'carNumber' && sortDirection === 'desc'">▼</span>
+                        </div>
+                    </div>
                 </th>
-                <th (click)="setSort('badOrderDate')" style="cursor:pointer">
-                    Bad Ordered Date
-                    <span *ngIf="sortColumn === 'badOrderDate'">
-                        {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                    </span>
+                <th class="border-0 py-3 sortable-header" (click)="onSetSort('badOrderDate')"
+                    style="cursor:pointer; min-width: 120px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-semibold">Bad Ordered Date</span>
+                        <div class="sort-container">
+                            <i *ngIf="sortColumn !== 'badOrderDate' || sortDirection === ''"
+                                class="material-icons-outlined sort-icon">unfold_more</i>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'asc'">▲</span>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'desc'">▼</span>
+                        </div>
+                    </div>
                 </th>
                 <th style="min-width: 200px;">Bad Order Description</th>
-                <th>Repair Date</th>
+                <th class="border-0 py-3 sortable-header" (click)="onSetSort('repairedDate')"
+                    style="cursor:pointer; min-width: 120px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-semibold">Repaired Date</span>
+                        <div class="sort-container">
+                            <i *ngIf="sortColumn !== 'repairedDate' || sortDirection === ''"
+                                class="material-icons-outlined sort-icon">unfold_more</i>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'repairedDate' && sortDirection === 'asc'">▲</span>
+                            <span class="sort-indicator"
+                                *ngIf="sortColumn === 'repairedDate' && sortDirection === 'desc'">▼</span>
+                        </div>
+                    </div>
+                </th>
                 <th class="text-end">Actions</th>
             </tr>
         </thead>
@@ -32,10 +69,11 @@
                 <td class="fw-medium">{{ row.carMark }}</td>
                 <td>{{ row.carNumber }}</td>
                 <td>{{ row.badOrderDate }}</td>
-                <td>{{ row.badOrderDescription }}</td>
-                <td>{{ row.repairedDate }}</td>
+                <td>{{ row.badOrderDescription || '-' }}</td>
+                <td>{{ row.repairedDate || 'repair that bitch' }}</td>
                 <td class="text-end">
-                    <button aria-label="View Details" class="btn btn-sm btn-action p-1" type="button">
+                    <button (click)="onViewDetails(row)" aria-label="View Details" class="btn btn-sm btn-action p-1"
+                        type="button">
                         <span class="material-icons-outlined">visibility</span>
                     </button>
                 </td>
@@ -48,10 +86,10 @@
 <div class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
     <div class="mb-2 mb-sm-0">
         Showing
-        <span class="fw-semibold text-dark">{{ (page - 1) * pageSize + 1 }}</span>
+        <span class="fw-semibold text-dark">{{ showingFrom }}</span>
         to
         <span class="fw-semibold text-dark">
-            {{ Math.min(page * pageSize, allBadOrders.length) }}
+            {{showingTo}}
         </span>
         of
         <span class="fw-semibold text-dark">{{ allBadOrders.length }}</span>
@@ -60,17 +98,16 @@
     <nav aria-label="Page navigation">
         <ul class="pagination pagination-sm mb-0">
             <li class="page-item" [class.disabled]="page === 1">
-                <a class="page-link" href="#" (click)="setPage(page - 1); $event.preventDefault()">
+                <a class="page-link" href="#" (click)="onSetPage(page - 1); $event.preventDefault()">
                     <span class="material-icons-outlined">chevron_left</span>
                 </a>
             </li>
-            <li class="page-item"
-                *ngFor="let p of [].constructor(Math.ceil(allBadOrders.length / pageSize)); let i = index"
+            <li class="page-item" *ngFor="let p of [].constructor(totalPages); let i = index"
                 [class.active]="page === i + 1">
-                <a class="page-link" href="#" (click)="setPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+                <a class="page-link" href="#" (click)="onSetPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
             </li>
-            <li class="page-item" [class.disabled]="page === Math.ceil(allBadOrders.length / pageSize)">
-                <a class="page-link" href="#" (click)="setPage(page + 1); $event.preventDefault()">
+            <li class="page-item" [class.disabled]="page === totalPages">
+                <a class="page-link" href="#" (click)="onSetPage(page + 1); $event.preventDefault()">
                     <span class="material-icons-outlined">chevron_right</span>
                 </a>
             </li>

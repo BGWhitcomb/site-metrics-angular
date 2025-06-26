@@ -1,15 +1,14 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { InboundRailcar } from '../../models/inbound-railcar';
+import { InboundRailcar } from '../../models/inspections';
 import { PaginationService } from '../services/pagination.service';
 import { RowEditingService } from '../services/row-editing.service';
 import { ToastService } from 'src/app/services/toast.service';
-import { BadOrderedRailcar } from '../../models/bad-ordered-railcar';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-inspection-table',
   templateUrl: './inspection-table.component.html',
-  styleUrls: ['./inspection-table.component.css'],
-  providers: [PaginationService]
+  styleUrls: ['./inspection-table.component.css']
 })
 export class InspectionTableComponent {
 
@@ -22,8 +21,11 @@ export class InspectionTableComponent {
   @Input() page: number = 1;
   @Input() totalPages: number = 1;
   @Input() sortColumn: string = '';
-  @Input() sortDirection: 'asc' | 'desc' = 'asc';
+  @Input() sortDirection: 'asc' | 'desc' | '' = 'asc';
   @Input() pagedData: InboundRailcar[] = [];
+
+  loading = false;
+  Math = Math;
 
   // output data
   @Output() addNewInspection = new EventEmitter<void>();
@@ -41,12 +43,12 @@ export class InspectionTableComponent {
 
 
   constructor(
-    public pagination: PaginationService<InboundRailcar>,
     public edit: RowEditingService,
     public toast: ToastService
   ) { }
 
-// refactor this to use the pagination service
+
+  // refactor this to use the pagination service
   onSetSort(column: string) {
     this.setSort.emit(column);
   }

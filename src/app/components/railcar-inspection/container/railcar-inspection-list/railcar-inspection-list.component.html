@@ -53,22 +53,33 @@
             (updateBadOrderDescription)="updateBadOrderDescription($event)" (toggleRepaired)="toggleRepaired($event)"
             (toggleBadOrder)="onToggleBadOrder($event)" (toggleLoadStatus)="onToggleLoadStatus($event)"
             (toggleSelect)="onToggleSelect($event)" (toggleSelectAll)="onToggleSelectAll($event)"
-            (cancelEdit)="onCancelEdit($event)" (setSort)="onSetSort($event)"
-            (setPage)="onSetPage($event)"></app-inspection-table>
+            (cancelEdit)="onCancelEdit($event)" (setSort)="paginationInspection.setSort($event)"
+            (setPage)="paginationInspection.setPage($event, inspections)"></app-inspection-table>
         </div>
         <div *ngIf="activeTab === 'bad-orders'">
+          <div class="position-relative mb-3">
+            <h5 class="mb-0 text-muted text-center w-100">Active Bad Orders</h5>
+            <button
+              class="btn btn-primary btn-sm d-flex align-items-center gap-1 position-absolute end-0 top-50 translate-middle-y"
+              style="transform: translateY(-50%);" (click)="exportBadOrders()">
+              <span class="material-icons-outlined" style="font-size: 20px;">file_download</span>
+              Export List
+            </button>
+          </div>
           <app-bad-order-table [badOrders]="activeBadOrders"
-            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedData]="pagedData"
-            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumn"
-            [sortDirection]="sortDirection" [page]="page" [totalPages]="totalPages" [showingFrom]="showingFrom"
-            [showingTo]="showingTo" (addNewInspection)="addNewInspection()"
-            (updateBadOrderDate)="updateBadOrderDate($event)"
-            (updateBadOrderDescription)="updateBadOrderDescription($event)" (toggleSelect)="onToggleSelect($event)"
-            (toggleSelectAll)="onToggleSelectAll($event)" (cancelEdit)="onCancelEdit($event)"
-            (setSort)="onSetSort($event)" (setPage)="onSetPage($event)"></app-bad-order-table>
+            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedData]="pagedBadOrders"
+            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumnBO"
+            [sortDirection]="sortDirectionBO" [page]="pageBO" [totalPages]="totalPagesBO" [showingFrom]="showingFromBO"
+            [showingTo]="showingToBO" (toggleSelect)="onToggleSelect($event)" (cancelEdit)="onCancelEdit($event)"
+            (setSort)="paginationBadOrders.setSort($event)"
+            (setPage)="paginationBadOrders.setPage($event, activeBadOrders)"></app-bad-order-table>
         </div>
         <div *ngIf="activeTab === 'all-bad-orders'">
-          <app-all-bad-orders-table [allBadOrders]="allBadOrders"></app-all-bad-orders-table>
+          <app-all-bad-orders-table [allBadOrders]="allBadOrders" [pagedData]="pagedAllBadOrders"
+            [sortColumn]="sortColumnAllBO" [sortDirection]="sortDirectionAllBO" [page]="pageAllBO"
+            [totalPages]="totalPagesAllBO" [showingFrom]="showingFromAllBO" [showingTo]="showingToAllBO"
+            (setSort)="paginationBadOrders.setSort($event)"
+            (setPage)="paginationBadOrders.setPage($event, allBadOrders)"></app-all-bad-orders-table>
         </div>
       </div>
     </div>

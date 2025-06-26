@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { InboundRailcar } from '../models/inbound-railcar';
+import { InboundRailcar, BadOrderedRailcar } from '../models/inspections';
 
 @Component({
   selector: 'app-railcar-form',
@@ -82,6 +82,7 @@ export class RailcarFormComponent implements OnInit, OnDestroy {
       badOrdered: this.badOrdered || hasBadOrder,
       repairDescription: this.repairDescription,
       badOrderedRailcar: (this.badOrdered || hasBadOrder) ? {
+        inboundId: 0, // Placeholder, will be set by backend
         badOrderId: 0, // Placeholder, will be set by backend
         carMark: this.carMark,
         carNumber: +this.carNumber,

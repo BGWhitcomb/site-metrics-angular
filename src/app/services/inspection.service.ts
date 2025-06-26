@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
-import { InboundRailcar } from '../components/railcar-inspection/models/inbound-railcar';
-import { BadOrderedRailcar } from '../components/railcar-inspection/models/bad-ordered-railcar';
+import { InboundRailcar, BadOrderedRailcar } from '../components/railcar-inspection/models/inspections';
 
 @Injectable({
   providedIn: 'root'
@@ -39,9 +38,9 @@ export class InspectionService {
   }
 
   // Might just use addInspection for bad orders as well
-  addBadOrder(data: BadOrderedRailcar): Observable<BadOrderedRailcar> {
-    return this.http.post<BadOrderedRailcar>(`${this.baseUrl}/bad-orders`, data);
-  }
+  // addBadOrder(data: BadOrderedRailcar): Observable<BadOrderedRailcar> {
+  //   return this.http.post<BadOrderedRailcar>(`${this.baseUrl}/bad-orders`, data);
+  // }
 
   updateBadOrder(id: string, data: BadOrderedRailcar): Observable<BadOrderedRailcar> {
     return this.http.put<BadOrderedRailcar>(`${this.baseUrl}/bad-orders/${id}`, data);

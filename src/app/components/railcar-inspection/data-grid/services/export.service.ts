@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
-import { BadOrderedRailcar } from '../../models/bad-ordered-railcar';
+import { BadOrderedRailcar } from '../../models/inspections';
+import { RowEditingService } from './row-editing.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,35 +9,33 @@ import { BadOrderedRailcar } from '../../models/bad-ordered-railcar';
 export class ExportService {
   badOrders: BadOrderedRailcar[] = [];
 
-  constructor() {
-    // Initialize with sample data for testing
-    this.loadBadOrders();
+  constructor(private edit: RowEditingService) {
   }
+  /**
+   * Exports the currently active bad orders to an Excel file.
+   * If there are no active bad orders, it logs a warning and does not proceed with export.
+   * The exported file will have a timestamp in its name.
+   */
 
-  private loadBadOrders(): BadOrderedRailcar[] {
-    // Replace this with actual data loading logic
-    // For now, return an empty array or sample data
-    return [];
-  }
-
-  getActiveBadOrders(): BadOrderedRailcar[] {
-    return this.badOrders.filter(bo =>
-      bo.isActive &&
-      new Date(bo.orderDate) >= new Date(new Date().setDate(new Date().getDate() - 30)) // Last 30 days
-    );
-  }
-
-  exportToExcel(): void {
-    const activeBadOrders = this.getActiveBadOrders();
-
-    if (activeBadOrders.length === 0) {
-      alert('No active bad orders to export.');
+  exportBadOrders(_badOrders: BadOrderedRailcar[]): void {
+    // call editing service to get the latest bad orders
+    this.badOrders = this.edit.badOrders;
+    if (this.edit.badOrders.length === 0) {
+      console.warn('No active bad orders to export.');
       return;
     }
 
-    // Prepare data for export
-    const exportData = activeBadOrders.map(bo => ({
 
+    // Prepare data for export
+    const exportData = this.badOrders.map(_bo => ({
+      'Car Mark': _bo.carMark,
+      'Car Number': _bo.carNumber,
+      'Bad Order Description': _bo.badOrderDescription,
+      'Bad Order Date': _bo.badOrderDate ? new Date(_bo.badOrderDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }) : '',
     }));
 
     // Create workbook and worksheet
@@ -63,27 +62,8 @@ export class ExportService {
 
     const keys = Object.keys(data[0]);
     return keys.map(key => {
-      const maxLength = Math.max(
-        key.length,
-        ...data.map(row => String(row[key]).length)
-      );
-      return { wch: Math.min(maxLength + 2, 50) }; // Cap at 50 characters
+      // Removed unused formatDate method
+      return { wch: Math.min(key.length + 2, 50) }; // Cap at 50 characters
     });
-  }
-
-  private formatDate(date: Date): string {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  }
-
-  refreshBadOrders(): void {
-    this.loadBadOrders();
-  }
-
-  getActiveBadOrderCount(): number {
-    return this.getActiveBadOrders().length;
   }
 }

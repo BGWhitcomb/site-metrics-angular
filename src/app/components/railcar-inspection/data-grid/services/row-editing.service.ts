@@ -1,123 +1,165 @@
 import { Injectable } from '@angular/core';
-import { InboundRailcar } from '../../models/inbound-railcar';
-import { InspectionQueue } from '../../models/inspection-queue';
+import { BehaviorSubject, Observable, EMPTY, finalize, forkJoin, map, of } from 'rxjs';
+import { InboundRailcar, BadOrderedRailcar } from '../../models/inspections';
+import { InspectionQueue, BadOrderQueue } from '../../models/inspection-queue';
 import { ToastService } from 'src/app/services/toast.service';
-import { EMPTY, finalize, forkJoin, map, Observable, of } from 'rxjs';
 import { InspectionService } from 'src/app/services/inspection.service';
-import { BadOrderedRailcar } from '../../models/bad-ordered-railcar';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RowEditingService {
+  // --- Reactive SSOT State ---
+  private _inspections = new BehaviorSubject<InboundRailcar[]>([]);
+  private _badOrders = new BehaviorSubject<BadOrderedRailcar[]>([]);
+  private _selectedRows = new BehaviorSubject<Set<number>>(new Set());
+  private _rowBackups = new BehaviorSubject<Map<number, InboundRailcar>>(new Map());
+  private _boRowBackups = new BehaviorSubject<Map<number, BadOrderedRailcar>>(new Map());
+  private _inspectionQueue = new BehaviorSubject<InspectionQueue>({ new: [], modified: [] });
+  private _badOrderQueue = new BehaviorSubject<BadOrderQueue>({ new: [], modified: [] });
+  private _selectAll = new BehaviorSubject<boolean>(false);
+  private _loading = new BehaviorSubject<boolean>(false);
+  private _deletedRows = new BehaviorSubject<InboundRailcar[]>([]);
 
-  selectAll = false;
-  loading = false;
+  // --- Observables for components to subscribe to ---
+  inspections$ = this._inspections.asObservable();
+  badOrders$ = this._badOrders.asObservable();
+  selectedRows$ = this._selectedRows.asObservable();
+  rowBackups$ = this._rowBackups.asObservable();
+  boRowBackups$ = this._boRowBackups.asObservable();
+  inspectionQueue$ = this._inspectionQueue.asObservable();
+  badOrderQueue$ = this._badOrderQueue.asObservable();
+  selectAll$ = this._selectAll.asObservable();
+  loading$ = this._loading.asObservable();
+  deletedRows$ = this._deletedRows.asObservable();
+
+  // --- Synchronous getters/setters for imperative code ---
+  get inspections() { return this._inspections.value; }
+  set inspections(val: InboundRailcar[]) { this._inspections.next(val); }
+  get badOrders() { return this._badOrders.value; }
+  set badOrders(val: BadOrderedRailcar[]) { this._badOrders.next(val); }
+  get selectedRows() { return this._selectedRows.value; }
+  set selectedRows(val: Set<number>) { this._selectedRows.next(val); }
+  get rowBackups() { return this._rowBackups.value; }
+  set rowBackups(val: Map<number, InboundRailcar>) { this._rowBackups.next(val); }
+  get boRowBackups() { return this._boRowBackups.value; }
+  set boRowBackups(val: Map<number, BadOrderedRailcar>) { this._boRowBackups.next(val); }
+  get inspectionQueue() { return this._inspectionQueue.value; }
+  set inspectionQueue(val: InspectionQueue) { this._inspectionQueue.next(val); }
+  get badOrderQueue() { return this._badOrderQueue.value; }
+  set badOrderQueue(val: BadOrderQueue) { this._badOrderQueue.next(val); }
+  get selectAll() { return this._selectAll.value; }
+  set selectAll(val: boolean) { this._selectAll.next(val); }
+  get loading() { return this._loading.value; }
+  set loading(val: boolean) { this._loading.next(val); }
+  get deletedRows() { return this._deletedRows.value; }
+  set deletedRows(val: InboundRailcar[]) { this._deletedRows.next(val); }
 
   constructor(private toast: ToastService, private inspectionService: InspectionService) { }
 
-  isEditing(selectedRows: Set<number>, inboundId: number): boolean {
-    return selectedRows.has(inboundId);
+  // --- Type Guards ---
+  private isInboundRailcar(row: any): row is InboundRailcar {
+    return 'carMark' in row && 'inspectedDate' in row;
+  }
+  private isBadOrderedRailcar(row: any): row is BadOrderedRailcar {
+    return 'badOrderId' in row && 'badOrderDate' in row;
   }
 
-  selectRow(
+  // --- Shared Row Selection ---
+  selectRow<T extends { inboundId: number }>(
     inboundId: number,
-    inspections: InboundRailcar[],
+    rows: T[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>
+    rowBackups: Map<number, T>
   ): void {
     if (!selectedRows.has(inboundId)) {
-      selectedRows.add(inboundId);
-      const row = inspections.find(r => r.inboundId === inboundId);
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.add(inboundId);
+      this.selectedRows = updatedSelected;
+
+      const row = rows.find(r => r.inboundId === inboundId);
       if (row && !rowBackups.has(inboundId)) {
-        rowBackups.set(inboundId, { ...row });
+        const updatedBackups = new Map(rowBackups);
+        updatedBackups.set(inboundId, { ...row });
+        if (this.isInboundRailcar(row)) this.rowBackups = updatedBackups as unknown as Map<number, InboundRailcar>;
+        else this.boRowBackups = updatedBackups as unknown as Map<number, BadOrderedRailcar>;
       }
     }
   }
 
-  deselectRow(
+  deselectRow<T extends { inboundId: number }>(
     inboundId: number,
-    inspections: InboundRailcar[],
+    rows: T[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>
+    rowBackups: Map<number, T>
   ): void {
     if (selectedRows.has(inboundId)) {
       const backup = rowBackups.get(inboundId);
       if (backup) {
-        const idx = inspections.findIndex(r => r.inboundId === inboundId);
-        if (idx !== -1) inspections[idx] = { ...backup };
-        rowBackups.delete(inboundId);
+        const idx = rows.findIndex(r => r.inboundId === inboundId);
+        if (idx !== -1) rows[idx] = { ...backup };
+        const updatedBackups = new Map(rowBackups);
+        updatedBackups.delete(inboundId);
+        if (this.isInboundRailcar(backup)) this.rowBackups = updatedBackups as unknown as Map<number, InboundRailcar>;
+        else this.boRowBackups = updatedBackups as unknown as Map<number, BadOrderedRailcar>;
       }
-      selectedRows.delete(inboundId);
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.delete(inboundId);
+      this.selectedRows = updatedSelected;
     }
   }
 
-  cancelEdit(
+  // --- Cancel Edit(s) ---
+  cancelEdit<T extends { inboundId: number }>(
     inboundId: number,
-    inspections: InboundRailcar[],
+    rows: T[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>,
-    queue: InspectionQueue
+    rowBackups: Map<number, T>,
+    queue: { new: T[]; modified: T[] }
   ): void {
     if (inboundId < 0) {
-      const idx = inspections.findIndex(row => row.inboundId === inboundId);
-      if (idx !== -1) inspections.splice(idx, 1);
-      selectedRows.delete(inboundId);
-      this.updateEditMode(selectedRows, queue);
+      const idx = rows.findIndex(row => row.inboundId === inboundId);
+      if (idx !== -1) rows.splice(idx, 1);
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.delete(inboundId);
+      this.selectedRows = updatedSelected;
+      this.updateEditMode(updatedSelected, queue);
     } else {
       if (rowBackups.has(inboundId)) {
-        const rowIndex = inspections.findIndex(row => row.inboundId === inboundId);
+        const rowIndex = rows.findIndex(row => row.inboundId === inboundId);
         if (rowIndex !== -1) {
-          inspections[rowIndex] = { ...rowBackups.get(inboundId)! };
+          rows[rowIndex] = { ...rowBackups.get(inboundId)! };
         }
-        rowBackups.delete(inboundId);
-        selectedRows.delete(inboundId);
-        this.updateEditMode(selectedRows, queue);
+        const updatedBackups = new Map(rowBackups);
+        updatedBackups.delete(inboundId);
+        if (rows.length && this.isInboundRailcar(rows[0])) this.rowBackups = updatedBackups as unknown as Map<number, InboundRailcar>;
+        else this.boRowBackups = updatedBackups as unknown as Map<number, BadOrderedRailcar>;
+        const updatedSelected = new Set(selectedRows);
+        updatedSelected.delete(inboundId);
+        this.selectedRows = updatedSelected;
+        this.updateEditMode(updatedSelected, queue);
       }
     }
   }
 
-  cancelAllEdits(
-    inspections: InboundRailcar[],
+  cancelAllEdits<T extends { inboundId: number }>(
+    rows: T[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>,
-    queue: InspectionQueue
+    rowBackups: Map<number, T>,
+    queue: { new: T[]; modified: T[] }
   ): void {
     const idsToCancel = Array.from(selectedRows);
     idsToCancel.forEach((inboundId) =>
-      this.cancelEdit(inboundId, inspections, selectedRows, rowBackups, queue)
+      this.cancelEdit(inboundId, rows, selectedRows, rowBackups, queue)
     );
     queue.new = [];
     queue.modified = [];
-    selectedRows.clear();
-    this.updateEditMode(selectedRows, queue);
+    this.selectedRows = new Set();
+    this.updateEditMode(this.selectedRows, queue);
   }
 
-  resolveBadOrder(row: InboundRailcar, newDate: string): Observable<InboundRailcar> {
-    if (!row.badOrderedRailcar) {
-      row.badOrderedRailcar = {} as BadOrderedRailcar;
-    }
-    row.badOrderedRailcar.repairedDate = newDate;
-    row.badOrderedRailcar.isActive = false;
-
-    return this.inspectionService.updateInspection(row.inboundId!.toString(), row)
-  }
-
-  updateBadOrderDate(row: InboundRailcar, newDate: string): void {
-    if (!row.badOrderedRailcar) {
-      row.badOrderedRailcar = {} as BadOrderedRailcar;
-    }
-    row.badOrderedRailcar.badOrderDate = newDate;
-  }
-
-  updateBadOrderDescription(row: InboundRailcar, newDescription: string): void {
-    if (!row.badOrderedRailcar) {
-      row.badOrderedRailcar = {} as BadOrderedRailcar;
-    }
-    row.badOrderedRailcar.badOrderDescription = newDescription;
-  }
-
-  private updateEditMode(selectedRows: Set<number>, queue: InspectionQueue): void {
+  // --- Edit Mode Helper ---
+  private updateEditMode<T>(selectedRows: Set<number>, queue: { new: T[]; modified: T[] }): void {
     if (selectedRows.size === 0) {
       this.selectAll = false;
     }
@@ -127,56 +169,129 @@ export class RowEditingService {
     }
   }
 
-  private validateRow(row: InboundRailcar): boolean {
-    const basicValidation = Boolean(
-      row.carMark?.trim() &&
-      row.carNumber &&
-      row.inspectedDate
-    );
-    if (row.badOrdered) {
-      const badOrderValidation = Boolean(
-        row.badOrderedRailcar?.badOrderDate &&
-        row.badOrderedRailcar?.badOrderDescription?.trim()
+  // --- Validation ---
+  private validateRow<T extends { inboundId: number }>(row: T): boolean {
+    if (this.isInboundRailcar(row)) {
+      const basicValidation = Boolean(
+        row.carMark?.trim() &&
+        row.carNumber &&
+        row.inspectedDate
       );
-      return basicValidation && badOrderValidation;
+      if (row.badOrdered) {
+        const badOrderValidation = Boolean(
+          row.badOrderedRailcar?.badOrderDate &&
+          row.badOrderedRailcar?.badOrderDescription?.trim()
+        );
+        return basicValidation && badOrderValidation;
+      }
+      return basicValidation;
+    } else if (this.isBadOrderedRailcar(row)) {
+      return Boolean(
+        row.badOrderDate &&
+        row.badOrderDescription?.trim()
+      );
     }
-    return basicValidation;
+    return false;
   }
 
-  // removed this button to use the action bar instead - save selected
-  saveIndividualRow(
-    inboundId: number,
-    inspections: InboundRailcar[],
+  // --- Update Bad Order Fields ---
+  updateBadOrderDate<T extends { inboundId: number }>(row: T, newDate: string): void {
+    if (this.isInboundRailcar(row)) {
+      if (!row.badOrderedRailcar) {
+        row.badOrderedRailcar = {
+          badOrderId: 0,
+          inboundId: row.inboundId,
+          carMark: row.carMark,
+          carNumber: row.carNumber,
+          badOrderDate: '',
+          badOrderDescription: '',
+          isActive: true
+        };
+      }
+      row.badOrderedRailcar.badOrderDate = newDate;
+    } else if (this.isBadOrderedRailcar(row)) {
+      row.badOrderDate = newDate;
+    }
+  }
+
+  updateBadOrderDescription<T extends { inboundId: number }>(row: T, newDescription: string): void {
+    if (this.isInboundRailcar(row)) {
+      if (!row.badOrderedRailcar) {
+        row.badOrderedRailcar = {
+          badOrderId: 0,
+          inboundId: row.inboundId,
+          carMark: row.carMark,
+          carNumber: row.carNumber,
+          badOrderDate: '',
+          badOrderDescription: '',
+          isActive: true
+        };
+      }
+      row.badOrderedRailcar.badOrderDescription = newDescription;
+    } else if (this.isBadOrderedRailcar(row)) {
+      row.badOrderDescription = newDescription;
+    }
+  }
+
+  cancelBadOrderEdit(
+    badOrderId: number,
+    badOrders: BadOrderedRailcar[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>,
-    queue: InspectionQueue
+    rowBackups: Map<number, BadOrderedRailcar>,
+    queue: { new: BadOrderedRailcar[]; modified: BadOrderedRailcar[] }
   ): void {
-    const row = inspections.find(r => r.inboundId === inboundId);
+    const row = badOrders.find(r => r.badOrderId === badOrderId);
+    if (row) {
+      const updatedBackups = new Map(rowBackups);
+      updatedBackups.delete(badOrderId);
+      this.boRowBackups = updatedBackups;
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.delete(badOrderId);
+      this.selectedRows = updatedSelected;
+      this.updateEditMode(updatedSelected, queue);
+    }
+  }
+
+  // --- Save Individual Row ---
+  saveIndividualRow<T extends { inboundId: number }>(
+    inboundId: number,
+    rows: T[],
+    selectedRows: Set<number>,
+    rowBackups: Map<number, T>,
+    queue: { new: T[]; modified: T[] }
+  ): void {
+    const row = rows.find(r => r.inboundId === inboundId);
     if (row && this.validateRow(row)) {
       if (inboundId < 0) {
         queue.new.push({ ...row });
       } else {
         queue.modified.push({ ...row });
       }
-      rowBackups.delete(inboundId);
-      selectedRows.delete(inboundId);
-      this.updateEditMode(selectedRows, queue);
+      const updatedBackups = new Map(rowBackups);
+      updatedBackups.delete(inboundId);
+      if (this.isInboundRailcar(row)) this.rowBackups = updatedBackups as unknown as Map<number, InboundRailcar>;
+      else this.boRowBackups = updatedBackups as unknown as Map<number, BadOrderedRailcar>;
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.delete(inboundId);
+      this.selectedRows = updatedSelected;
+      this.updateEditMode(updatedSelected, queue);
       this.toast.show(`Rows Saved. Click Submit to save to server.`, 'success');
     } else {
       this.toast.show('Please fill in all required fields', 'error');
     }
   }
 
-  saveSelectedRows(
-    inspections: InboundRailcar[],
+  // --- Save Selected Rows ---
+  saveSelectedRows<T extends { inboundId: number }>(
+    rows: T[],
     selectedRows: Set<number>,
-    rowBackups: Map<number, InboundRailcar>,
-    queue: InspectionQueue
+    rowBackups: Map<number, T>,
+    queue: { new: T[]; modified: T[] }
   ): void {
     let validRowCount = 0;
     const totalSelectedRows = selectedRows.size;
     Array.from(selectedRows).forEach(inboundId => {
-      const row = inspections.find(r => r.inboundId === inboundId);
+      const row = rows.find(r => r.inboundId === inboundId);
       if (row && this.validateRow(row)) {
         validRowCount++;
         if (inboundId < 0) {
@@ -184,17 +299,30 @@ export class RowEditingService {
         } else {
           queue.modified.push({ ...row });
         }
-        rowBackups.delete(inboundId);
+        const updatedBackups = new Map(rowBackups);
+        updatedBackups.delete(inboundId);
+        if (row && this.isInboundRailcar(row)) this.rowBackups = updatedBackups as unknown as Map<number, InboundRailcar>;
+        else this.boRowBackups = updatedBackups as unknown as Map<number, BadOrderedRailcar>;
       }
     });
     if (validRowCount === totalSelectedRows && totalSelectedRows > 0) {
-      selectedRows.clear();
+      this.selectedRows = new Set();
       this.toast.show('Changes stored. Click Submit to save.', 'success');
     } else if (totalSelectedRows > 0) {
       this.toast.show('Please fill in all required fields', 'error');
     }
   }
 
+  // --- Resolve Bad Order ---
+  resolveBadOrder(row: BadOrderedRailcar, newDate: string): Observable<BadOrderedRailcar> {
+    if (!newDate) throw new Error('A valid repaired date must be provided.');
+    if (!row.isActive) throw new Error('Cannot resolve a bad order that is not active.');
+    row.repairedDate = newDate;
+    row.isActive = false;
+    return this.inspectionService.updateBadOrder(row.badOrderId.toString(), row);
+  }
+
+  // --- Toggle Logic (InboundRailcar only) ---
   toggleRepaired(
     inboundId: number,
     inspections: InboundRailcar[]
@@ -205,18 +333,17 @@ export class RowEditingService {
     }
   }
 
-  toggleBadOrder(
-    inboundId: number,
-    inspections: InboundRailcar[]
-  ): void {
+  toggleBadOrder(inboundId: number, inspections: InboundRailcar[]): void {
     const row = inspections.find(r => r.inboundId === inboundId);
     if (row) {
+      row.badOrdered = !row.badOrdered;
       if (row.badOrdered) {
         if (!row.badOrderedRailcar) {
           row.badOrderedRailcar = {
             badOrderId: 0,
-            carMark: row.carMark || '',
-            carNumber: parseInt(row.carNumber?.toString() || '0'),
+            inboundId: row.inboundId,
+            carMark: row.carMark,
+            carNumber: row.carNumber,
             badOrderDate: new Date().toISOString().split('T')[0],
             badOrderDescription: '',
             isActive: true,
@@ -233,18 +360,22 @@ export class RowEditingService {
     row.isEmpty = !row.isEmpty;
   }
 
+  // --- Select All (InboundRailcar only) ---
   toggleSelectAll(
-    pagedData: InboundRailcar[],
+    pagedData: InboundRailcar[] | BadOrderedRailcar[],
     selectedRows: Set<number>
   ): void {
+    const updatedSelected = new Set(selectedRows);
     this.selectAll = !this.selectAll;
     if (this.selectAll) {
-      pagedData.forEach(row => selectedRows.add(row.inboundId));
+      pagedData.forEach(row => updatedSelected.add(row.inboundId));
     } else {
-      pagedData.forEach(row => selectedRows.delete(row.inboundId));
+      pagedData.forEach(row => updatedSelected.delete(row.inboundId));
     }
+    this.selectedRows = updatedSelected;
   }
 
+  // --- Toggle Select (InboundRailcar only) ---
   toggleSelect(
     inboundId: number,
     inspections: InboundRailcar[],
@@ -257,13 +388,18 @@ export class RowEditingService {
       if (inboundId > 0) {
         const row = inspections.find(r => r.inboundId === inboundId);
         if (row) {
-          rowBackups.set(inboundId, { ...row });
+          const updatedBackups = new Map(rowBackups);
+          updatedBackups.set(inboundId, { ...row });
+          this.rowBackups = updatedBackups;
         }
       }
-      selectedRows.add(inboundId);
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.add(inboundId);
+      this.selectedRows = updatedSelected;
     }
   }
 
+  // --- Add New Row (InboundRailcar only) ---
   private generateRowId(): number {
     return -(Date.now() + Math.floor(Math.random() * 1000));
   }
@@ -284,9 +420,13 @@ export class RowEditingService {
       badOrderedRailcar: undefined
     };
     inspections.unshift(emptyRow);
-    selectedRows.add(emptyRow.inboundId!);
+    const updatedSelected = new Set(selectedRows);
+    updatedSelected.add(emptyRow.inboundId!);
+    this.selectedRows = updatedSelected;
+    this.inspections = inspections;
   }
 
+  // --- Submit Inspections (InboundRailcar only) ---
   submitInspections(
     queue: InspectionQueue,
     selectedRows: Set<number>
@@ -301,49 +441,76 @@ export class RowEditingService {
       .pipe(finalize(() => this.loading = false));
   }
 
+  // --- Delete Inspections (InboundRailcar only) ---
   deleteInspections(
     inspections: InboundRailcar[],
     selectedRows: Set<number>,
     rowBackups: Map<number, InboundRailcar>,
     queue: InspectionQueue
-  ): Observable<void> | void {
+  ): Observable<InboundRailcar[]> {
     if (selectedRows.size === 0) {
       this.toast.show('No selected rows to delete.', 'error');
-      return of();
+      return of([]);
     }
-    const selectedRowsArray = Array.from(selectedRows)
-      .map(id => inspections.find(row => row.inboundId === id))
-      .filter(row => row !== undefined) as InboundRailcar[];
+
+    const selectedRowsArray = this.getSelectedRows(inspections, selectedRows);
     const toDeleteFromBackend = selectedRowsArray.filter(row => row.inboundId! > 0);
     const toDeleteLocally = selectedRowsArray.filter(row => row.inboundId! < 0);
 
-    const deleteObservables: Observable<void>[] = [];
-    if (toDeleteFromBackend.length > 0) {
-      toDeleteFromBackend.forEach(row => {
-        deleteObservables.push(
-          this.inspectionService.deleteInspection(row.inboundId!.toString(), row)
-        );
-      });
-    }
-    if (toDeleteLocally.length > 0) {
-      toDeleteLocally.forEach(row => {
-        const idx = inspections.findIndex(r => r.inboundId === row.inboundId);
-        if (idx !== -1) inspections.splice(idx, 1);
-        selectedRows.delete(row.inboundId!);
-        rowBackups.delete(row.inboundId!);
-      });
-    }
+    const deleteObservables = this.deleteBackendRows(toDeleteFromBackend);
+
+    this.deleteLocalRows(toDeleteLocally, inspections, selectedRows, rowBackups);
 
     if (deleteObservables.length > 0) {
       return forkJoin(deleteObservables).pipe(
-        map(() => void 0)
+        map(() => selectedRowsArray) // Return the deleted rows
       );
     } else {
-
-      return of();
+      return of(selectedRowsArray);
     }
+
+
   }
 
+  private getSelectedRows(
+    inspections: InboundRailcar[],
+    selectedRows: Set<number>
+  ): InboundRailcar[] {
+    return Array.from(selectedRows)
+      .map(id => inspections.find(row => row.inboundId === id))
+      .filter((row): row is InboundRailcar => row !== undefined);
+  }
+
+  private deleteBackendRows(
+    rows: InboundRailcar[]
+  ): Observable<void>[] {
+    return rows.map(row =>
+      this.inspectionService.deleteInspection(row.inboundId!.toString(), row)
+    );
+  }
+
+  private deleteLocalRows(
+    rows: InboundRailcar[],
+    inspections: InboundRailcar[],
+    selectedRows: Set<number>,
+    rowBackups: Map<number, InboundRailcar>
+  ): void {
+    rows.forEach(row => {
+      const idx = inspections.findIndex(r => r.inboundId === row.inboundId);
+      if (idx !== -1) inspections.splice(idx, 1);
+
+      // Update selectedRows and rowBackups
+      const updatedSelected = new Set(this.selectedRows);
+      updatedSelected.delete(row.inboundId!);
+      this.selectedRows = updatedSelected;
+
+      const updatedBackups = new Map(this.rowBackups);
+      updatedBackups.delete(row.inboundId!);
+      this.rowBackups = updatedBackups;
+    });
+  }
+
+  // --- Handle Delete Success (InboundRailcar only) ---
   handleDeleteSuccess(
     deletedRows: InboundRailcar[],
     inspections: InboundRailcar[],
@@ -352,17 +519,22 @@ export class RowEditingService {
     queue: InspectionQueue,
     onSuccess?: () => void
   ): void {
+    this.deletedRows = deletedRows;
     const deletedIds = deletedRows.map(row => row.inboundId);
     for (const id of deletedIds) {
       const idx = inspections.findIndex(row => row.inboundId === id);
       if (idx !== -1) inspections.splice(idx, 1);
-      selectedRows.delete(id!);
-      rowBackups.delete(id!);
+      const updatedSelected = new Set(selectedRows);
+      updatedSelected.delete(id!);
+      this.selectedRows = updatedSelected;
+      const updatedBackups = new Map(rowBackups);
+      updatedBackups.delete(id!);
+      this.rowBackups = updatedBackups;
     }
     queue.new = queue.new.filter(row => !deletedIds.includes(row.inboundId));
     queue.modified = queue.modified.filter(row => !deletedIds.includes(row.inboundId));
     this.selectAll = false;
-    this.updateEditMode(selectedRows, queue);
+    this.updateEditMode(this.selectedRows, queue);
     this.loading = false;
     if (onSuccess) onSuccess();
     this.toast.show(`Successfully deleted ${deletedRows.length} inspections`, 'success');
