@@ -1,9 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InboundRailcar } from '../../models/inspections';
-import { PaginationService } from '../services/pagination.service';
 import { RowEditingService } from '../services/row-editing.service';
 import { ToastService } from 'src/app/services/toast.service';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-inspection-table',
@@ -25,7 +23,6 @@ export class InspectionTableComponent {
   @Input() pagedData: InboundRailcar[] = [];
 
   loading = false;
-  Math = Math;
 
   // output data
   @Output() addNewInspection = new EventEmitter<void>();
@@ -57,7 +54,6 @@ export class InspectionTableComponent {
   }
 
   // Editing/selecting methods
-
 
   onAddClick(): void {
     this.addNewInspection.emit()

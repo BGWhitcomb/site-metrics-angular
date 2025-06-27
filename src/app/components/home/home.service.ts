@@ -12,28 +12,11 @@ export class HomeService {
 
   constructor(private http: HttpClient) { }
 
+  // use inspection service for ssot
+  private inspectionService = this.http;
+
   // Get all inspections for charts
   getAllInspections(): Observable<InboundRailcar[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/inspections`);
+    return this.inspectionService.get<InboundRailcar[]>(`${this.baseUrl}/inspections`);
   }
-
-  // // Get inspection summary/stats
-  // getInspectionStats(): Observable<any> {
-  //   return this.http.get<any>(`${this.baseUrl}/inspections/stats`);
-  // }
-
-  // // Get inspections by date range for trending
-  // getInspectionsByDateRange(startDate: string, endDate: string): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.baseUrl}/inspections/date-range?start=${startDate}&end=${endDate}`);
-  // }
-
-  // // Get recent inspections
-  // getRecentInspections(limit: number = 10): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.baseUrl}/inspections/recent?limit=${limit}`);
-  // }
-
-  // // Get inspections grouped by status for pie charts
-  // getInspectionsByStatus(): Observable<any> {
-  //   return this.http.get<any>(`${this.baseUrl}/inspections/by-status`);
-  // }
 }

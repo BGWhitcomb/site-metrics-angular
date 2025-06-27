@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { InboundRailcar, BadOrderedRailcar } from '../models/inspections';
+import { InboundRailcar } from '../models/inspections';
 
 @Component({
   selector: 'app-railcar-form',

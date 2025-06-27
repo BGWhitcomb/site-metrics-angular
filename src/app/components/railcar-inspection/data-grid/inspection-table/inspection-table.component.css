@@ -22,7 +22,6 @@
     background-color: var(--bs-table-hover-bg);
 }
 
-/* Fixed height containers to prevent shifting */
 .action-container {
     height: 40px;
     display: flex;
@@ -57,7 +56,7 @@
     border-left: 3px solid #f44336;
 }
 
-/* Sort Header Improvements */
+/* Sort Header */
 .sortable-header {
     user-select: none;
     transition: background-color 0.15s ease-in-out;
@@ -104,7 +103,7 @@
     opacity: 1;
 }
 
-/* Modern Input Styles */
+/*  Input Styles */
 .modern-input {
     border: 1px solid #dee2e6;
     border-radius: 4px;

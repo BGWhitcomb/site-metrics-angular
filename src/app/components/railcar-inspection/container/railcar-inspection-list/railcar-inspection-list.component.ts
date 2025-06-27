@@ -84,23 +84,6 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.exp.exportBadOrders(this.edit.badOrders);
   }
 
-  // onToggleBadOrderSelect(inboundId: number): void {
-  //   this.edit.toggleSelect(inboundId, this.badOrders, this.selectedRows, this.rowBackups);
-  // }
-  // onToggleBadOrderSelectAll(pagedData: BadOrderedRailcar[]): void {
-  //   this.edit.toggleSelectAll(pagedData, this.selectedRows);
-  // }
-  // newBadOrderDate(event: { newDate: string, row: BadOrderedRailcar }): void {
-  //   this.edit.updateBadOrderDate(event.row, event.newDate);
-  // }
-  // newBadOrderDescription(event: { newDescription: string, row: BadOrderedRailcar }): void {
-  //   this.edit.updateBadOrderDescription(event.row, event.newDescription);
-  // }
-  // cancelBadOrderEdit(badOrderId: number): void {
-  //   this.edit.cancelBadOrderEdit(badOrderId, this.badOrders, this.selectedRows, this.rowBackups, this.queue);
-  //   this.pagination.setPage(1, this.getCurrentTabData());
-  // }
-
   // --- Inspection table methods ---
   addNewInspection(): void {
     this.edit.addNewRow(this.inspections, this.selectedRows);
