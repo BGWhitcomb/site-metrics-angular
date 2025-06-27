@@ -5,7 +5,6 @@ export interface InspectionQueue {
     modified: InboundRailcar[];
 }
 
-// will track edited bad orders?
 export interface BadOrderQueue {
     new: BadOrderedRailcar[];
     modified: BadOrderedRailcar[];

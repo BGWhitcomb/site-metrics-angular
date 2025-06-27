@@ -57,11 +57,8 @@ closeDatePicker(row: BadOrderedRailcar): void {
   this.datePickerOpen[id] = false;
 }
 
-  // Handle date change, emit to parent, and close picker
   onRepairDateChange(newDate: string, row: BadOrderedRailcar): void {
     this.handleRepairDateChange.emit({ newDate, row });
-    // provide a way to close the date picker after the change
-    
     this.closeDatePicker(row);
   }
   onUpdateBadOrderDate(newDate: string, row: BadOrderedRailcar) {

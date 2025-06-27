@@ -1,7 +1,7 @@
 .login-bg {
   min-height: 100vh;
   width: 100vw;
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('/assets/railcarbanner.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/assets/railcarbanner.png') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,9 +15,9 @@
 }
 
 .login-card {
-  background: rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.15);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   backdrop-filter: blur(8px);
   max-width: 400px;
   width: 100%;
@@ -51,6 +51,7 @@
     padding: 0;
     max-width: 98vw;
   }
+
   .card-body {
     padding: 2rem 0.5rem !important;
   }

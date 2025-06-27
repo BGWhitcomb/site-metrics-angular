@@ -55,7 +55,7 @@ export class AllBadOrdersTableComponent {
     });
   }
 
- showModal(options: { title: string, content: string, buttons: { text: string, action: () => void }[] }): void {
+  showModal(options: { title: string, content: string, buttons: { text: string, action: () => void }[] }): void {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `

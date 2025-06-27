@@ -83,7 +83,6 @@ export class HomeComponent implements OnInit {
 
   loadDashboardData(): void {
     this.loading = true;
-    this.clearMessages();
 
     this.homeService.getAllInspections().subscribe({
       next: (data) => {
@@ -155,10 +154,6 @@ export class HomeComponent implements OnInit {
         this.toast.show('Failed to load dashboard data', 'error');
       }
     });
-  }
-
-  private clearMessages(): void {
-    // No longer needed if using toast, but you can keep for future expansion
   }
 
   retryLoadData(): void {
