@@ -1,6 +1,8 @@
-# See http://help.github.com/ignore-files/ for more about ignoring files.
+# Angular environment files
+src/environments/environment.*.ts
 
 # Compiled output
+/build/
 /dist
 /tmp
 /out-tsc
@@ -9,6 +11,7 @@
 # Node
 /node_modules
 npm-debug.log
+yarn-debug.log
 yarn-error.log
 
 # IDEs and editors

@@ -46,7 +46,7 @@
         </div>
         <!-- Tab Content: Only show the active table -->
         <div *ngIf="activeTab === 'inspections'">
-          <app-inspection-table [inspections]="inspections" [pagedData]="pagedData" [selectedRows]="selectedRows"
+          <app-inspection-table [inspections]="inspections" [pagedData$]="pagedData$" [selectedRows]="selectedRows"
             [selectAll]="selectAll" [sortColumn]="sortColumn" [sortDirection]="sortDirection" [page]="page"
             [totalPages]="totalPages" [showingFrom]="showingFrom" [showingTo]="showingTo"
             (addNewInspection)="addNewInspection()" (updateBadOrderDate)="updateBadOrderDate($event)"
@@ -66,16 +66,16 @@
               Export List
             </button>
           </div>
-          <app-bad-order-table [badOrders]="activeBadOrders"
-            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedData]="pagedBadOrders"
-            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumnBO"
+          <app-bad-order-table [badOrders]="badOrders"
+            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedBadOrders$]="pagedBadOrders$"
+            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumnBO" [badOrders]="badOrders"
             [sortDirection]="sortDirectionBO" [page]="pageBO" [totalPages]="totalPagesBO" [showingFrom]="showingFromBO"
             [showingTo]="showingToBO" (toggleSelect)="onToggleSelect($event)" (cancelEdit)="onCancelEdit($event)"
             (setSort)="paginationBadOrders.setSort($event)"
-            (setPage)="paginationBadOrders.setPage($event, activeBadOrders)"></app-bad-order-table>
+            (setPage)="paginationBadOrders.setPage($event, badOrders)"></app-bad-order-table>
         </div>
         <div *ngIf="activeTab === 'all-bad-orders'">
-          <app-all-bad-orders-table [allBadOrders]="allBadOrders" [pagedData]="pagedAllBadOrders"
+          <app-all-bad-orders-table [pagedAllBadOrders$]="pagedAllBadOrders$" [allBadOrders]="allBadOrders"
             [sortColumn]="sortColumnAllBO" [sortDirection]="sortDirectionAllBO" [page]="pageAllBO"
             [totalPages]="totalPagesAllBO" [showingFrom]="showingFromAllBO" [showingTo]="showingToAllBO"
             (setSort)="paginationBadOrders.setSort($event)"

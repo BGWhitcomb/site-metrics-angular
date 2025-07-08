@@ -65,7 +65,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let row of pagedData">
+            <tr *ngFor="let row of pagedAllBadOrders$ | async">
                 <td class="fw-medium">{{ row.carMark }}</td>
                 <td>{{ row.carNumber }}</td>
                 <td>{{ row.badOrderDate }}</td>

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InboundRailcar } from '../../models/inspections';
 import { RowEditingService } from '../services/row-editing.service';
 import { ToastService } from 'src/app/services/toast.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-inspection-table',
@@ -20,7 +21,7 @@ export class InspectionTableComponent {
   @Input() totalPages: number = 1;
   @Input() sortColumn: string = '';
   @Input() sortDirection: 'asc' | 'desc' | '' = 'asc';
-  @Input() pagedData: InboundRailcar[] = [];
+  @Input() pagedData$!: Observable<InboundRailcar[]>;
 
   loading = false;
 
@@ -72,7 +73,7 @@ export class InspectionTableComponent {
   }
 
   onToggleSelectAll() {
-    this.toggleSelectAll.emit(this.pagedData);
+    this.toggleSelectAll.emit(this.inspections);
   }
 
   onSaveIndividualRow(inboundId: number) {

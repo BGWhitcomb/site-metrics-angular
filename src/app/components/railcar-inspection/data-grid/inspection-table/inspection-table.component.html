@@ -135,7 +135,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngIf="pagedData as inspections; else loading">
+                    <ng-container *ngIf="pagedData$ | async as inspections; else loading">
                         <tr *ngIf="inspections.length === 0" class="text-center">
                             <td colspan="10" class="py-5">
                                 <span class="text-muted">No inspections found</span>

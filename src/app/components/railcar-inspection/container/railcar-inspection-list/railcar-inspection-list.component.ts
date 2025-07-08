@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { InspectionService } from 'src/app/services/inspection.service';
 import { InboundRailcar, BadOrderedRailcar } from '../../models/inspections';
-import { finalize, Subject, takeUntil, Subscription } from 'rxjs';
+import { finalize, Subject, takeUntil, Subscription, map } from 'rxjs';
 import { PaginationService } from '../../data-grid/services/pagination.service';
 import { ToastService } from 'src/app/services/toast.service';
 import { RowEditingService } from '../../data-grid/services/row-editing.service';
@@ -26,18 +26,32 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     private inspectionService: InspectionService,
     public paginationInspection: PaginationService<InboundRailcar>,
     public paginationBadOrders: PaginationService<BadOrderedRailcar>,
+    public paginationAllBadOrders: PaginationService<BadOrderedRailcar>,
     public toast: ToastService,
     public edit: RowEditingService,
     public exp: ExportService
   ) { }
 
+  // Observables for ui paged data
+
+  pagedData$ = this.edit.inspections$.pipe(
+    map(data => this.paginationInspection.getPagedData(data)),
+    takeUntil(this.destroy$)
+  )
+  pagedBadOrders$ = this.edit.badOrders$.pipe(
+    map(data => this.paginationBadOrders.getPagedData(data)),
+    takeUntil(this.destroy$)
+  )
+  pagedAllBadOrders$ = this.edit.allBadOrders$.pipe(
+    map(data => this.paginationAllBadOrders.getPagedData(data)),
+    takeUntil(this.destroy$)
+  )
+
   ngOnInit() {
-    this.paginationInspection.setPage(1, this.getCurrentTabData());
-    this.paginationBadOrders.setPage(1, this.getCurrentTabData());
+    this.loadDataForActiveTab();
 
     this.paginationInspection.sortColumn = 'inspectedDate';
     this.paginationInspection.sortDirection = 'desc';
-    this.loadDataForActiveTab();
   }
 
   ngOnDestroy() {
@@ -48,7 +62,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   // --- Getters for SSOT state ---
   get inspections() { return this.edit.inspections; }
   get badOrders() { return this.edit.badOrders; }
-  get allBadOrders() { return this.edit.badOrders; }
+  get allBadOrders() { return this.edit.allBadOrders; }
   get selectedRows() { return this.edit.selectedRows; }
   get deletedRows() { return this.edit.deletedRows; }
   get rowBackups() { return this.edit.rowBackups; }
@@ -88,6 +102,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   addNewInspection(): void {
     this.edit.addNewRow(this.inspections, this.selectedRows);
     this.paginationInspection.setPage(1, this.inspections);
+    this.paginationInspection.sortColumn = 'inspectedDate';
+    this.paginationInspection.sortDirection = 'desc';
   }
 
   updateBadOrderDate(event: { newDate: string, row: InboundRailcar }): void {
@@ -226,7 +242,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: data => {
-          this.edit.badOrders = data;
+          this.edit.allBadOrders = data;
           this.toast.show(`Loaded ${data.length} total bad orders`, 'success');
         },
         error: err => {
@@ -329,25 +345,25 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   // for allBadOrders table
   get pagedAllBadOrders() {
-    return this.paginationBadOrders.getPagedData(this.getCurrentTabData());
+    return this.paginationAllBadOrders.getPagedData(this.getCurrentTabData());
   }
   get sortColumnAllBO(): string {
-    return this.paginationBadOrders.sortColumn;
+    return this.paginationAllBadOrders.sortColumn;
   }
   get sortDirectionAllBO(): 'asc' | 'desc' | '' {
-    return this.paginationBadOrders.sortDirection;
+    return this.paginationAllBadOrders.sortDirection;
   }
   get pageAllBO(): number {
-    return this.paginationBadOrders.page;
+    return this.paginationAllBadOrders.page;
   }
   get totalPagesAllBO(): number {
-    return this.paginationBadOrders.getTotalPages(this.getCurrentTabData());
+    return this.paginationAllBadOrders.getTotalPages(this.getCurrentTabData());
   }
   get showingFromAllBO(): number {
-    return this.paginationBadOrders.getShowingFrom();
+    return this.paginationAllBadOrders.getShowingFrom();
   }
   get showingToAllBO(): number {
-    return this.paginationBadOrders.getShowingTo(this.getCurrentTabData());
+    return this.paginationAllBadOrders.getShowingTo(this.getCurrentTabData());
   }
 
   // --- Getters for action bar state ---

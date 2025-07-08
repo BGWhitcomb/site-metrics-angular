@@ -12,6 +12,7 @@ export class BadOrderTableComponent {
   // input data
   @Input() selectAll: boolean = false;
   @Input() selectedRows: Set<number> = new Set();
+  @Input() pagedBadOrders$!: Observable<BadOrderedRailcar[]>;
   @Input() badOrders: BadOrderedRailcar[] = [];
   @Input() showingTo!: number;
   @Input() showingFrom!: number;
@@ -36,10 +37,6 @@ export class BadOrderTableComponent {
 
   datePickerOpen: { [id: number]: boolean } = {};
 
-  constructor(
-  ) { }
-
-
   toggleDatePicker(row: BadOrderedRailcar): void {
     const id = row.badOrderId;
     if (id == null) return;
@@ -51,11 +48,11 @@ export class BadOrderTableComponent {
     return id != null ? !!this.datePickerOpen[id] : false;
   }
 
-closeDatePicker(row: BadOrderedRailcar): void {
-  const id = row.badOrderId;
-  if (id == null) return;
-  this.datePickerOpen[id] = false;
-}
+  closeDatePicker(row: BadOrderedRailcar): void {
+    const id = row.badOrderId;
+    if (id == null) return;
+    this.datePickerOpen[id] = false;
+  }
 
   onRepairDateChange(newDate: string, row: BadOrderedRailcar): void {
     this.handleRepairDateChange.emit({ newDate, row });

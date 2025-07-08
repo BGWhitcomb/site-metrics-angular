@@ -1,16 +1,30 @@
 .hero-section {
     margin-left: 75px;
     background-color: #f8f9fa;
-    padding: 3rem 0;
+    padding: 5em 0;
     border-bottom: 1px solid #dee2e6;
+    animation: logoSlideFade 0.8s ease-out forwards;
 }
 
 .hero-section img {
     transition: transform 0.3s ease;
+    animation: logoSlideFade 0.8s ease-out forwards;
 }
 
 .hero-section img:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
+}
+
+@keyframes logoSlideFade {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .lead {

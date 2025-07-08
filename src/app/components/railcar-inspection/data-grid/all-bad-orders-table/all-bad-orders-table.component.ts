@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { BadOrderedRailcar } from '../../models/inspections';
 import { PaginationService } from '../services/pagination.service';
+import { RowEditingService } from '../services/row-editing.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-all-bad-orders-table',
@@ -10,8 +12,8 @@ import { PaginationService } from '../services/pagination.service';
 })
 export class AllBadOrdersTableComponent {
 
+  @Input() pagedAllBadOrders$!: Observable<BadOrderedRailcar[]>;
   @Input() allBadOrders: BadOrderedRailcar[] = [];
-  @Input() pagedData: BadOrderedRailcar[] = [];
   @Input() showingTo!: number;
   @Input() showingFrom!: number;
   @Input() page: number = 1;
@@ -24,7 +26,7 @@ export class AllBadOrdersTableComponent {
   @Output() setPage = new EventEmitter<number>();
   Math = Math;
 
-  constructor() { }
+  constructor(public edit: RowEditingService) { }
 
   onSetSort(column: string): void {
     this.setSort.emit(column);
