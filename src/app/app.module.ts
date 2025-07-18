@@ -64,6 +64,7 @@ import { environment } from 'src/environments/environment';
       // cacheLocation: 'memory', // Use memory for production
       authorizationParams: {
         redirect_uri: environment.auth.redirectUri,
+        logoutUrl: environment.auth.logoutUrl,
         audience: environment.auth.audience,
         scope: 'openid profile email'
       }
