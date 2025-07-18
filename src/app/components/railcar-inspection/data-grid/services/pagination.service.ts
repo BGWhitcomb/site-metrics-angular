@@ -1,71 +1,97 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Pagination } from '../../models/pagination';
+
+type SortDirection = 'asc' | 'desc' | '';
 
 @Injectable()
 export class PaginationService<T> {
-  page = 1;
-  pageSize = 50;
-  sortColumn = '';
-  sortDirection: 'asc' | 'desc' | '' = 'asc';
+  private _data$ = new BehaviorSubject<T[]>([]);
+  private _page$ = new BehaviorSubject(1);
+  private _pageSize$ = new BehaviorSubject(50);
+  private _sortColumn$ = new BehaviorSubject<string>('');
+  private _sortDirection$ = new BehaviorSubject<SortDirection>('asc');
 
-  getPagedData(data: T[]): T[] {
-    let sorted = this.sortColumn ? this.sortData(data) : data;
-    const start = (this.page - 1) * this.pageSize;
-    return sorted.slice(start, start + this.pageSize);
+  readonly pagedState$: Observable<Pagination<T>> = combineLatest([
+    this._data$,
+    this._page$,
+    this._pageSize$,
+    this._sortColumn$,
+    this._sortDirection$
+  ]).pipe(
+    map(([data, page, pageSize, sortColumn, sortDirection]) => {
+      const sortedData = sortColumn ? this.sortData([...data], sortColumn, sortDirection) : data;
+      const start = (page - 1) * pageSize;
+      const paged = sortedData.slice(start, start + pageSize);
+      const totalPages = Math.ceil(data.length / pageSize);
+
+      return {
+        data: paged,
+        page,
+        pageSize,
+        totalPages,
+        sortColumn,
+        sortDirection,
+        showingFrom: start + 1,
+        showingTo: Math.min(start + pageSize, data.length)
+      };
+    })
+  );
+
+  setData(data: T[]) {
+    this._data$.next(data);
   }
 
-  getTotalPages(data: T[]): number {
-    return Math.ceil(data.length / this.pageSize);
+  setPage(page: number) {
+    const total = this.getTotalPages();
+    if (page >= 1 && page <= total) this._page$.next(page);
   }
 
-  setSort(column: string) {
-    if (this.sortColumn !== column) {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    } else {
-      if (this.sortDirection === '') {
-        this.sortDirection = 'asc';
-      } else if (this.sortDirection === 'asc') {
-        this.sortDirection = 'desc';
-      } else if (this.sortDirection === 'desc') {
-        this.sortDirection = '';
+  setPageSize(size: number) {
+    this._pageSize$.next(size);
+    this.setPage(1);
+  }
+
+  setSort(column: string, direction?: SortDirection) {
+    const currentColumn = this._sortColumn$.value;
+    const currentDirection = this._sortDirection$.value;
+
+    let newDirection: SortDirection = direction ?? (
+      currentColumn !== column ? 'asc' :
+      currentDirection === 'asc' ? 'desc' :
+      currentDirection === 'desc' ? '' : 'asc'
+    );
+
+    this._sortColumn$.next(column);
+    this._sortDirection$.next(newDirection);
+    this._page$.next(1);
+  }
+
+  private getTotalPages(): number {
+    return Math.ceil(this._data$.value.length / this._pageSize$.value);
+  }
+
+  private sortData(data: T[], column: string, direction: SortDirection): T[] {
+    return data.sort((a, b) => {
+      const aVal = a[column as keyof T];
+      const bVal = b[column as keyof T];
+
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
+      // Handle date fields
+      if (column.toLowerCase().includes('date')) {
+        const dateA = new Date(aVal as any).getTime();
+        const dateB = new Date(bVal as any).getTime();
+        return direction === 'asc' ? dateA - dateB : dateB - dateA;
       }
-    }
-    this.page = 1;
-  }
 
-  setPage(page: number, data: T[]) {
-    const totalPages = this.getTotalPages(data);
-    if (page >= 1 && page <= totalPages) {
-      this.page = page;
-    }
-  }
-
-  getShowingFrom(): number {
-    return (this.page - 1) * this.pageSize + 1;
-  }
-  getShowingTo<T>(data: T[]): number {
-    return Math.min(this.page * this.pageSize, data.length);
-  }
-
-  private sortData(data: T[]): T[] {
-    return [...data].sort((a, b) => {
-      const aValue = a[this.sortColumn as keyof T];
-      const bValue = b[this.sortColumn as keyof T];
-
-      if (aValue == null) return 1;
-      if (bValue == null) return -1;
-
-      if (this.sortColumn === 'inspectedDate') {
-        const dateA = new Date(aValue as any);
-        const dateB = new Date(bValue as any);
-        return this.sortDirection === 'asc'
-          ? dateA.getTime() - dateB.getTime()
-          : dateB.getTime() - dateA.getTime();
-      }
-
-      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
+      return aVal < bVal
+        ? direction === 'asc' ? -1 : 1
+        : aVal > bVal
+          ? direction === 'asc' ? 1 : -1
+          : 0;
     });
   }
 }

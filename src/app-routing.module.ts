@@ -5,15 +5,20 @@ import { RouterModule, Routes } from '@angular/router';
 import { RailcarFormComponent } from './app/components/railcar-inspection/railcar-form/railcar-form.component';
 import { RailcarInspectionListComponent } from './app/components/railcar-inspection/container/railcar-inspection-list/railcar-inspection-list.component';
 import { LoginComponent } from './app/auth/login/login.component';
+import { CallbackComponent } from './app/auth/callback/callback.component';
+import { AuthGuard } from './app/auth/guard/auth.guard';
 
-import { AuthGuard } from './app/auth/guards/auth.guard';
+
 
 const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  // { path: '**', redirectTo: 'home' },
   { path: 'login', component: LoginComponent },
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'railcar-form', component: RailcarFormComponent, canActivate: [AuthGuard] },
-  { path: 'railcar-inspection-list', component: RailcarInspectionListComponent, canActivate: [AuthGuard] }
+  { path: 'railcar-inspection-list', component: RailcarInspectionListComponent, canActivate: [AuthGuard] },
+  { path: 'callback', component: CallbackComponent }
+
 ];
 
 @NgModule({

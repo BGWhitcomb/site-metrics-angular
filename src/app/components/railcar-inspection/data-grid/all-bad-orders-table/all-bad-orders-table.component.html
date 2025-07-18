@@ -9,12 +9,12 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="fw-semibold">Car Mark</span>
                         <div class="sort-container">
-                            <i *ngIf="sortColumn !== 'carMark' || sortDirection === ''"
+                            <i *ngIf="pagedState?.sortColumn !== 'carMark' || pagedState?.sortDirection === ''"
                                 class="material-icons-outlined sort-icon">unfold_more</i>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'carMark' && sortDirection === 'asc'">▲</span>
+                                *ngIf="pagedState?.sortColumn === 'carMark' && pagedState?.sortDirection === 'asc'">▲</span>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'carMark' && sortDirection === 'desc'">▼</span>
+                                *ngIf="pagedState?.sortColumn === 'carMark' && pagedState?.sortDirection === 'desc'">▼</span>
                         </div>
                     </div>
                 </th>
@@ -23,12 +23,12 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="fw-semibold">Car Number</span>
                         <div class="sort-container">
-                            <i *ngIf="sortColumn !== 'carNumber' || sortDirection === ''"
+                            <i *ngIf="pagedState?.sortColumn !== 'carNumber' || pagedState?.sortDirection === ''"
                                 class="material-icons-outlined sort-icon">unfold_more</i>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'carNumber' && sortDirection === 'asc'">▲</span>
+                                *ngIf="pagedState?.sortColumn === 'carNumber' && pagedState?.sortDirection === 'asc'">▲</span>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'carNumber' && sortDirection === 'desc'">▼</span>
+                                *ngIf="pagedState?.sortColumn === 'carNumber' && pagedState?.sortDirection === 'desc'">▼</span>
                         </div>
                     </div>
                 </th>
@@ -37,12 +37,12 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="fw-semibold">Bad Ordered Date</span>
                         <div class="sort-container">
-                            <i *ngIf="sortColumn !== 'badOrderDate' || sortDirection === ''"
+                            <i *ngIf="pagedState?.sortColumn !== 'badOrderDate' || pagedState?.sortDirection === ''"
                                 class="material-icons-outlined sort-icon">unfold_more</i>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'asc'">▲</span>
+                                *ngIf="pagedState?.sortColumn === 'badOrderDate' && pagedState?.sortDirection === 'asc'">▲</span>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'badOrderDate' && sortDirection === 'desc'">▼</span>
+                                *ngIf="pagedState?.sortColumn === 'badOrderDate' && pagedState?.sortDirection === 'desc'">▼</span>
                         </div>
                     </div>
                 </th>
@@ -52,12 +52,12 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="fw-semibold">Repaired Date</span>
                         <div class="sort-container">
-                            <i *ngIf="sortColumn !== 'repairedDate' || sortDirection === ''"
+                            <i *ngIf="pagedState?.sortColumn !== 'repairedDate' || pagedState?.sortDirection === ''"
                                 class="material-icons-outlined sort-icon">unfold_more</i>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'repairedDate' && sortDirection === 'asc'">▲</span>
+                                *ngIf="pagedState?.sortColumn === 'repairedDate' && pagedState?.sortDirection === 'asc'">▲</span>
                             <span class="sort-indicator"
-                                *ngIf="sortColumn === 'repairedDate' && sortDirection === 'desc'">▼</span>
+                                *ngIf="pagedState?.sortColumn === 'repairedDate' && pagedState?.sortDirection === 'desc'">▼</span>
                         </div>
                     </div>
                 </th>
@@ -65,19 +65,33 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let row of pagedData">
-                <td class="fw-medium">{{ row.carMark }}</td>
-                <td>{{ row.carNumber }}</td>
-                <td>{{ row.badOrderDate }}</td>
-                <td>{{ row.badOrderDescription || '-' }}</td>
-                <td>{{ row.repairedDate || 'repair that bitch' }}</td>
-                <td class="text-end">
-                    <button (click)="onViewDetails(row)" aria-label="View Details" class="btn btn-sm btn-action p-1"
-                        type="button">
-                        <span class="material-icons-outlined">visibility</span>
-                    </button>
-                </td>
-            </tr>
+            <ng-container *ngIf="pagedState?.data as allBadOrders; else loading">
+                <tr *ngIf="allBadOrders.length === 0" class="text-center">
+                    <td colspan="6" class="py-5">
+                        <span class="text-muted">No bad orders found.</span>
+                    </td>
+                </tr>
+                <tr *ngFor="let row of allBadOrders">
+                    <td class="fw-medium">{{ row.carMark }}</td>
+                    <td>{{ row.carNumber }}</td>
+                    <td>{{ row.badOrderDate }}</td>
+                    <td>{{ row.badOrderDescription || '-' }}</td>
+                    <td>{{ row.repairedDate || '❌' }}</td>
+                    <td class="text-end">
+                        <button (click)="onViewDetails(row)" aria-label="View Details" class="btn btn-sm btn-action p-1"
+                            type="button">
+                            <span class="material-icons-outlined">visibility</span>
+                        </button>
+                    </td>
+                </tr>
+            </ng-container>
+            <ng-template #loading>
+                <tr>
+                    <td colspan="10" class="text-center py-5">
+                        <span class="text-muted">Loading...</span>
+                    </td>
+                </tr>
+            </ng-template>
         </tbody>
     </table>
 </div>
@@ -86,28 +100,28 @@
 <div class="mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
     <div class="mb-2 mb-sm-0">
         Showing
-        <span class="fw-semibold text-dark">{{ showingFrom }}</span>
+        <span class="fw-semibold text-dark">{{ pagedState?.showingFrom }}</span>
         to
         <span class="fw-semibold text-dark">
-            {{showingTo}}
+            {{ pagedState?.showingTo }}
         </span>
         of
-        <span class="fw-semibold text-dark">{{ allBadOrders.length }}</span>
+        <span class="fw-semibold text-dark">{{ pagedState?.data?.length ?? 0 }}</span>
         results
     </div>
     <nav aria-label="Page navigation">
         <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="page === 1">
-                <a class="page-link" href="#" (click)="onSetPage(page - 1); $event.preventDefault()">
+            <li class="page-item" [class.disabled]="pagedState?.page === 1">
+                <a class="page-link" href="#" (click)="onSetPage((pagedState?.page ?? 0) - 1); $event.preventDefault()">
                     <span class="material-icons-outlined">chevron_left</span>
                 </a>
             </li>
-            <li class="page-item" *ngFor="let p of [].constructor(totalPages); let i = index"
-                [class.active]="page === i + 1">
+            <li class="page-item" *ngFor="let p of [].constructor(pagedState?.totalPages); let i = index"
+                [class.active]="pagedState?.page === i + 1">
                 <a class="page-link" href="#" (click)="onSetPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
             </li>
-            <li class="page-item" [class.disabled]="page === totalPages">
-                <a class="page-link" href="#" (click)="onSetPage(page + 1); $event.preventDefault()">
+            <li class="page-item" [class.disabled]="pagedState?.page === pagedState?.totalPages">
+                <a class="page-link" href="#" (click)="onSetPage((pagedState?.page ?? 0) + 1); $event.preventDefault()">
                     <span class="material-icons-outlined">chevron_right</span>
                 </a>
             </li>

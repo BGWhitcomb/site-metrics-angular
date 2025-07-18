@@ -1,0 +1,23 @@
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light text-center">
+    <div class="callback-box">
+        <ng-container *ngIf="!error; else errorTpl">
+            <div class="d-flex flex-column align-items-center">
+                <div class="spinner-border text-primary mb-4" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="fw-semibold mb-2 text-primary fade-in-up">Signing you in</h5>
+                <p class="text-muted fade-in-up delay-1">Authenticating your session...</p>
+            </div>
+        </ng-container>
+
+        <ng-template #errorTpl>
+            <div class="alert alert-danger shadow-sm shake">
+                <h6 class="fw-bold mb-2">Oops! Something went wrong.</h6>
+                <p class="mb-1">{{ error }}</p>
+            </div>
+            <a routerLink="/login" class="btn btn-outline-primary w-100 mt-3 fade-in-up delay-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Login
+            </a>
+        </ng-template>
+    </div>
+</div>

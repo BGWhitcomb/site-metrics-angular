@@ -17,6 +17,7 @@ export class HomeComponent implements OnInit {
 
   public barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       y: {
         beginAtZero: true
@@ -53,6 +54,7 @@ export class HomeComponent implements OnInit {
 
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: true,
@@ -145,7 +147,6 @@ export class HomeComponent implements OnInit {
 
         this.showCharts = true;
         this.loading = false;
-        this.toast.show('Dashboard data loaded successfully!', 'success');
       },
       error: (error) => {
         console.error('Error loading inspections:', error);

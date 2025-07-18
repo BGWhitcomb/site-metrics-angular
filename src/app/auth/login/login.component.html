@@ -1,49 +1,16 @@
-<div class="login-bg">
-    <div class="login-center">
-        <div class="card login-card shadow-lg">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h1 class="h2 mb-3 fw-bold text-primary">Railcar Inspection Tracker</h1>
-                    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-                        <h2 class="h4 mb-4 text-center">Login</h2>
-                        <div class="form-group mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="material-icons-outlined">person</i>
-                                </span>
-                                <input id="username" name="username" [(ngModel)]="username" required
-                                    class="form-control" placeholder="Enter username">
-                            </div>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="material-icons-outlined">lock</i>
-                                </span>
-                                <input id="password" name="password" [type]="showPassword ? 'text' : 'password'"
-                                    [(ngModel)]="password" required class="form-control" placeholder="Enter password">
-                                <button type="button" class="btn btn-outline-secondary" tabindex="-1"
-                                    (click)="showPassword = !showPassword">
-                                    <i class="material-icons-outlined">
-                                        {{ showPassword ? 'visibility_off' : 'visibility' }}
-                                    </i>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary w-50 mb-3" type="submit" [disabled]="loginForm.invalid">
-                            Login
-                        </button>
-                        <p class="text-center text-muted small mb-0">
-                            Contact <a href="mailto:support&#64;railcartracker.site">support&#64;railcartracker.site</a>
-                            for credentials
-                        </p>
-                    </form>
-                    <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
-                        {{ errorMessage }}
-                    </div>
-                </div>
-            </div>
+<div class="login-bg d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card login-card shadow-lg p-4">
+        <div class="card-body text-center">
+            <img src="/assets/railcartracker_grey.png" alt="Railcar App Logo" class="mb-5 login-logo">
+
+            <p class="mb-4 text-muted">Welcome! Please sign in to continue.</p>
+            <button (click)="login()" class="btn btn-primary btn-lg w-75 mb-3">
+                <span class="material-icons-outlined align-middle me-2">login</span>
+                Sign in with Auth0
+            </button>
+            <p class="text-center text-muted small mb-0">
+                Need help? <a href="mailto:support&#64;railcartracker.site">Contact support</a>
+            </p>
         </div>
     </div>
+</div>

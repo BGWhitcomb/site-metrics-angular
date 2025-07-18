@@ -1,3 +1,104 @@
+/* Login Styles */
+
+.login-bg {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.login-center {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  max-width: 520px;
+  width: 100%;
+  padding: 3rem 2rem;
+  transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+
+.card.login-card {
+  padding: 0 !important;
+  border: none;
+}
+
+.login-card:hover {
+  transform: scale(1.01);
+}
+
+.login-logo {
+  width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto 2rem auto;
+  opacity: 0;
+  transform: scale(0.9);
+  animation: logoFadeIn 0.8s ease-out forwards;
+  transition: transform 0.2s ease;
+}
+
+.login-logo:hover {
+  transform: scale(1.03) rotate(1deg);
+}
+
+@keyframes logoFadeIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.input-group-text {
+  background: #f8f9fa;
+  border-radius: 8px 0 0 8px;
+}
+
+.form-control {
+  border-radius: 0 8px 8px 0;
+  height: 45px;
+}
+
+.btn-primary {
+  height: 45px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+}
+
+@media (max-width: 600px) {
+  .login-card {
+    padding: 1.5rem;
+    max-width: 95vw;
+  }
+
+  .login-card img {
+    max-width: 140px;
+  }
+
+  .card-body {
+    padding: 1.5rem 1rem !important;
+  }
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f8f9fa;
@@ -152,12 +253,13 @@ body {
   color: #0a58ca;
 }
 
-.table > tbody > tr.bad-order-row,
-.table > tbody > tr.bad-order-row > td {
+.table>tbody>tr.bad-order-row,
+.table>tbody>tr.bad-order-row>td {
   background-color: #ffd6d6 !important;
 }
-.table > tbody > tr.bad-order-row:hover,
-.table > tbody > tr.bad-order-row:hover > td {
+
+.table>tbody>tr.bad-order-row:hover,
+.table>tbody>tr.bad-order-row:hover>td {
   background-color: #ffb4b4 !important;
 }
 
@@ -432,7 +534,28 @@ textarea {
     min-width: 600px;
     font-size: 0.95em;
   }
-  .table th, .table td {
+
+  .table th,
+  .table td {
     padding: 0.5em 0.2em;
   }
+}
+
+/* Toast Notifications */
+.toast {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+.toast.ng-leave {
+  opacity: 0;
+}
+
+.toast-body {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }

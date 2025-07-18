@@ -1,40 +1,24 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, Input } from '@angular/core';
+import { AuthService } from 'src/app/auth/services/auth.service';
 
 @Component({
   selector: 'app-logout-dialog',
-  template: `  <div class="modal" *ngIf="showLogoutModal">
-    <div class="modal-content">
-      <h3>Are you sure you want to logout?</h3>
-      <button type="button" class="cta-button" (click)="confirmLogout()">Logout</button>
-      <button type="button" class="cta-button" (click)="cancelLogout()">Cancel</button>
-    </div>
-  </div>`
+  templateUrl: './logout-dialog.component.html',
+  styleUrls: ['./logout-dialog.component.css']
 })
 export class LogoutDialogComponent {
+  @Input() isVisible: boolean = false;
+  @Input() closeModal!: () => void;
 
-  showLogoutModal: boolean = false;
+  constructor(public auth: AuthService) { }
 
-
-  constructor(private router: Router) { }
-  
-
-
-  // Called when logout button is clicked
-  openLogoutModal() {
-    this.showLogoutModal = true;
+  confirmLogout(): void {
+    this.auth.logout();
   }
 
-  // Called when user confirms logout in modal
-  confirmLogout() {
-    localStorage.removeItem('token');
-    this.showLogoutModal = false;
-    this.router.navigate(['/login']);
+  cancelLogout(): void {
+    if (this.closeModal) {
+      this.closeModal();
+    }
   }
-
-  // Called when user cancels logout in modal
-  cancelLogout() {
-    this.showLogoutModal = false;
-  }
-
 }

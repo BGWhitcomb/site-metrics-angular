@@ -12,6 +12,7 @@ export class RowEditingService {
   // --- Reactive SSOT State ---
   private _inspections = new BehaviorSubject<InboundRailcar[]>([]);
   private _badOrders = new BehaviorSubject<BadOrderedRailcar[]>([]);
+  private _allBadOrders = new BehaviorSubject<BadOrderedRailcar[]>([]);
   private _selectedRows = new BehaviorSubject<Set<number>>(new Set());
   private _rowBackups = new BehaviorSubject<Map<number, InboundRailcar>>(new Map());
   private _boRowBackups = new BehaviorSubject<Map<number, BadOrderedRailcar>>(new Map());
@@ -21,9 +22,12 @@ export class RowEditingService {
   private _loading = new BehaviorSubject<boolean>(false);
   private _deletedRows = new BehaviorSubject<InboundRailcar[]>([]);
 
-  // --- Observables for components to subscribe to ---
+  // --- Observables for components to subscribe to, reactive ui state ---
+  badOrders$ = this._badOrders.asObservable().pipe(
+    map(badOrders => badOrders.filter(order => order.isActive))
+  );
   inspections$ = this._inspections.asObservable();
-  badOrders$ = this._badOrders.asObservable();
+  allBadOrders$ = this._allBadOrders.asObservable();
   selectedRows$ = this._selectedRows.asObservable();
   rowBackups$ = this._rowBackups.asObservable();
   boRowBackups$ = this._boRowBackups.asObservable();
@@ -33,11 +37,13 @@ export class RowEditingService {
   loading$ = this._loading.asObservable();
   deletedRows$ = this._deletedRows.asObservable();
 
-  // --- Synchronous getters/setters for imperative code ---
+  // --- Synchronous getters/setters ---
   get inspections() { return this._inspections.value; }
   set inspections(val: InboundRailcar[]) { this._inspections.next(val); }
-  get badOrders() { return this._badOrders.value; }
+  get badOrders() { return this._badOrders.value.filter(order => order.isActive); }
   set badOrders(val: BadOrderedRailcar[]) { this._badOrders.next(val); }
+  get allBadOrders() { return this._allBadOrders.value; }
+  set allBadOrders(val: BadOrderedRailcar[]) { this._allBadOrders.next(val); }
   get selectedRows() { return this._selectedRows.value; }
   set selectedRows(val: Set<number>) { this._selectedRows.next(val); }
   get rowBackups() { return this._rowBackups.value; }

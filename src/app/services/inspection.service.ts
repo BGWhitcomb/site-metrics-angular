@@ -15,8 +15,7 @@ export class InspectionService {
   getInspections(): Observable<InboundRailcar[]> {
     return this.http.get<InboundRailcar[]>(this.baseUrl + '/inspections');
   }
-
-  // can handle both single and multiple objects
+  
   addInspections(data: InboundRailcar | InboundRailcar[]): Observable<InboundRailcar | InboundRailcar[]> {
     return this.http.post<InboundRailcar | InboundRailcar[]>(`${this.baseUrl}/inspections`, data);
   }
@@ -37,17 +36,8 @@ export class InspectionService {
     return this.http.get<BadOrderedRailcar[]>(`${this.baseUrl}/bad-orders/all`);
   }
 
-  // Might just use addInspection for bad orders as well
-  // addBadOrder(data: BadOrderedRailcar): Observable<BadOrderedRailcar> {
-  //   return this.http.post<BadOrderedRailcar>(`${this.baseUrl}/bad-orders`, data);
-  // }
-
   updateBadOrder(id: string, data: BadOrderedRailcar): Observable<BadOrderedRailcar> {
     return this.http.put<BadOrderedRailcar>(`${this.baseUrl}/bad-orders/${id}`, data);
-  }
-
-  deleteBadOrder(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/bad-orders/${id}`);
   }
 
 }
