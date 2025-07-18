@@ -42,20 +42,22 @@
             <button aria-label="Advanced Filters" class="btn btn-outline-secondary p-2" type="button">
               <span class="material-icons-outlined">tune</span>
             </button>
-          </div>
         </div>
         <!-- Tab Content: Only show the active table -->
+        <!-- Inspections Tab -->
         <div *ngIf="activeTab === 'inspections'">
-          <app-inspection-table [inspections]="inspections" [pagedData$]="pagedData$" [selectedRows]="selectedRows"
-            [selectAll]="selectAll" [sortColumn]="sortColumn" [sortDirection]="sortDirection" [page]="page"
-            [totalPages]="totalPages" [showingFrom]="showingFrom" [showingTo]="showingTo"
-            (addNewInspection)="addNewInspection()" (updateBadOrderDate)="updateBadOrderDate($event)"
+          <app-inspection-table [pagedState]="pagedInspectionsState$ | async"
+            [selectedRows]="selectedRows" [selectAll]="selectAll" (addNewInspection)="addNewInspection()"
+            (updateBadOrderDate)="updateBadOrderDate($event)"
             (updateBadOrderDescription)="updateBadOrderDescription($event)" (toggleRepaired)="toggleRepaired($event)"
             (toggleBadOrder)="onToggleBadOrder($event)" (toggleLoadStatus)="onToggleLoadStatus($event)"
             (toggleSelect)="onToggleSelect($event)" (toggleSelectAll)="onToggleSelectAll($event)"
             (cancelEdit)="onCancelEdit($event)" (setSort)="paginationInspection.setSort($event)"
-            (setPage)="paginationInspection.setPage($event, inspections)"></app-inspection-table>
+            (setPage)="paginationInspection.setPage($event)">
+          </app-inspection-table>
         </div>
+
+        <!-- Bad Orders Tab -->
         <div *ngIf="activeTab === 'bad-orders'">
           <div class="position-relative mb-3">
             <h5 class="mb-0 text-muted text-center w-100">Active Bad Orders</h5>
@@ -66,20 +68,19 @@
               Export List
             </button>
           </div>
-          <app-bad-order-table [badOrders]="badOrders"
-            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)" [pagedBadOrders$]="pagedBadOrders$"
-            [selectedRows]="selectedRows" [selectAll]="selectAll" [sortColumn]="sortColumnBO" [badOrders]="badOrders"
-            [sortDirection]="sortDirectionBO" [page]="pageBO" [totalPages]="totalPagesBO" [showingFrom]="showingFromBO"
-            [showingTo]="showingToBO" (toggleSelect)="onToggleSelect($event)" (cancelEdit)="onCancelEdit($event)"
-            (setSort)="paginationBadOrders.setSort($event)"
-            (setPage)="paginationBadOrders.setPage($event, badOrders)"></app-bad-order-table>
+          <app-bad-order-table [pagedState]="pagedBadOrdersState$ | async"
+            [selectedRows]="selectedRows" [selectAll]="selectAll"
+            (handleRepairDateChange)="resolveBadOrder($event.row, $event.newDate)"
+            (toggleSelect)="onToggleSelect($event)" (cancelEdit)="onCancelEdit($event)"
+            (setSort)="paginationBadOrders.setSort($event)" (setPage)="paginationBadOrders.setPage($event)">
+          </app-bad-order-table>
         </div>
+
+        <!-- All Bad Orders Tab -->
         <div *ngIf="activeTab === 'all-bad-orders'">
-          <app-all-bad-orders-table [pagedAllBadOrders$]="pagedAllBadOrders$" [allBadOrders]="allBadOrders"
-            [sortColumn]="sortColumnAllBO" [sortDirection]="sortDirectionAllBO" [page]="pageAllBO"
-            [totalPages]="totalPagesAllBO" [showingFrom]="showingFromAllBO" [showingTo]="showingToAllBO"
-            (setSort)="paginationBadOrders.setSort($event)"
-            (setPage)="paginationBadOrders.setPage($event, allBadOrders)"></app-all-bad-orders-table>
+          <app-all-bad-orders-table [pagedState]="pagedAllBadOrdersState$ | async"
+            (setSort)="paginationAllBadOrders.setSort($event)" (setPage)="paginationAllBadOrders.setPage($event)">
+          </app-all-bad-orders-table>
         </div>
       </div>
     </div>

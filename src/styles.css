@@ -540,3 +540,22 @@ textarea {
     padding: 0.5em 0.2em;
   }
 }
+
+/* Toast Notifications */
+.toast {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+.toast.ng-leave {
+  opacity: 0;
+}
+
+.toast-body {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}

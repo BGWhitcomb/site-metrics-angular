@@ -37,7 +37,7 @@ export class RowEditingService {
   loading$ = this._loading.asObservable();
   deletedRows$ = this._deletedRows.asObservable();
 
-  // --- Synchronous getters/setters for imperative code ---
+  // --- Synchronous getters/setters ---
   get inspections() { return this._inspections.value; }
   set inspections(val: InboundRailcar[]) { this._inspections.next(val); }
   get badOrders() { return this._badOrders.value.filter(order => order.isActive); }

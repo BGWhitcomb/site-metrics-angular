@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PaginationService } from '../services/pagination.service';
 import { BadOrderedRailcar } from '../../models/inspections';
 import { Observable } from 'rxjs';
+import { Pagination } from '../../models/pagination';
 
 @Component({
   selector: 'app-bad-order-table',
@@ -12,15 +13,8 @@ export class BadOrderTableComponent {
   // input data
   @Input() selectAll: boolean = false;
   @Input() selectedRows: Set<number> = new Set();
-  @Input() pagedBadOrders$!: Observable<BadOrderedRailcar[]>;
-  @Input() badOrders: BadOrderedRailcar[] = [];
-  @Input() showingTo!: number;
-  @Input() showingFrom!: number;
-  @Input() page: number = 1;
-  @Input() totalPages: number = 1;
-  @Input() sortColumn: string = '';
-  @Input() sortDirection: 'asc' | 'desc' | '' = 'asc';
-  @Input() pagedData: BadOrderedRailcar[] = [];
+  // @Input() badOrders: BadOrderedRailcar[] = [];
+  @Input() pagedState: Pagination<BadOrderedRailcar> | null = null;
 
   // output data
   @Output() handleRepairDateChange = new EventEmitter<any>();
@@ -68,7 +62,7 @@ export class BadOrderTableComponent {
     this.toggleSelect.emit(rowId);
   }
   onToggleSelectAll() {
-    this.toggleSelectAll.emit(this.badOrders);
+    this.toggleSelectAll.emit(this.pagedState?.data || []);
   }
   onSaveIndividualRow(rowId: number) {
     this.saveIndividualRow.emit(rowId);

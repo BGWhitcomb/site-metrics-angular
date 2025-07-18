@@ -3,6 +3,7 @@ import { BadOrderedRailcar } from '../../models/inspections';
 import { PaginationService } from '../services/pagination.service';
 import { RowEditingService } from '../services/row-editing.service';
 import { Observable } from 'rxjs';
+import { Pagination } from '../../models/pagination';
 
 @Component({
   selector: 'app-all-bad-orders-table',
@@ -12,19 +13,13 @@ import { Observable } from 'rxjs';
 })
 export class AllBadOrdersTableComponent {
 
-  @Input() pagedAllBadOrders$!: Observable<BadOrderedRailcar[]>;
-  @Input() allBadOrders: BadOrderedRailcar[] = [];
-  @Input() showingTo!: number;
-  @Input() showingFrom!: number;
-  @Input() page: number = 1;
-  @Input() totalPages: number = 1;
-  @Input() sortColumn: string = '';
-  @Input() sortDirection: 'asc' | 'desc' | '' = 'asc';
+  // @Input() allBadOrders: BadOrderedRailcar[] = [];
+  @Input() pagedState: Pagination<BadOrderedRailcar> | null = null;
 
 
   @Output() setSort = new EventEmitter<string>();
   @Output() setPage = new EventEmitter<number>();
-  Math = Math;
+  loading = false;
 
   constructor(public edit: RowEditingService) { }
 
