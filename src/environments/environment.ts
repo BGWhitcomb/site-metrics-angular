@@ -6,6 +6,7 @@ export const environment = {
     clientId: 'eOX4VCRHMlVnAoOXsW81GRZvrthMQCKJ',
     audience: 'https://dev-a6yruv50gcerao6w.us.auth0.com/api/v2/',
     redirectUri: `${window.location.origin}/callback`, 
-    logoutUrl: `${window.location.origin}/`             
+    logoutUrl: `${window.location.origin}/`,
+    returnTo: `${window.location.origin}/login`,            
   }
 };

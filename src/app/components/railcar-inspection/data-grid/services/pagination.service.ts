@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Pagination } from '../../models/pagination';
+import { InboundRailcar } from '../../models/inspections';
 
 type SortDirection = 'asc' | 'desc' | '';
 

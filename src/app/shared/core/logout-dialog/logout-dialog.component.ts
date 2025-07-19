@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AuthService } from 'src/app/auth/services/auth.service';
 
 @Component({
@@ -8,17 +8,14 @@ import { AuthService } from 'src/app/auth/services/auth.service';
 })
 export class LogoutDialogComponent {
   @Input() isVisible: boolean = false;
-  @Input() closeModal!: () => void;
-
-  constructor(public auth: AuthService) { }
+  @Output() confirm = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   confirmLogout(): void {
-    this.auth.logout();
+    this.confirm.emit();
   }
 
   cancelLogout(): void {
-    if (this.closeModal) {
-      this.closeModal();
-    }
+    this.close.emit();
   }
 }

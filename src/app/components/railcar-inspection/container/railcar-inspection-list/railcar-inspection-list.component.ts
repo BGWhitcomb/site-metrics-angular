@@ -75,17 +75,28 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   exportBadOrders(): void {
     this.exp.exportBadOrders(this.edit.badOrders);
+    if (!this.edit.badOrders.length) {
+      this.toast.show('No bad orders to export', 'info');
+    }
   }
 
   // --- Inspection table methods ---
   addNewInspection(): void {
     this.edit.addNewRow(this.inspections, this.selectedRows);
+    this.paginationInspection.setData(this.inspections);
     this.paginationInspection.setPage(1);
     this.paginationInspection.setSort('inspectedDate', 'desc');
   }
 
   updateBadOrderDate(event: { newDate: string, row: InboundRailcar }): void {
     this.edit.updateBadOrderDate(event.row, event.newDate);
+    if (this.activeTab === 'bad-orders') {
+      this.paginationBadOrders.setData(this.edit.badOrders);
+    }
+    else if (this.activeTab === 'inspections') {
+      this.paginationInspection.setData(this.edit.inspections);
+    }
+
   }
 
   updateBadOrderDescription(event: { newDescription: string, row: InboundRailcar }): void {
@@ -98,6 +109,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   onToggleSelectAll(pagedData: InboundRailcar[]) {
     this.edit.toggleSelectAll(pagedData, this.selectedRows);
+    this.paginationInspection.setData(this.inspections);
   }
 
   onSaveIndividualRow(inboundId: number) {
@@ -105,7 +117,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   }
 
   onCancelEdit(inboundId: number) {
-    this.edit.cancelEdit(inboundId, this.inspections, this.selectedRows, this.rowBackups, this.queue);
+    this.edit.toggleSelect(inboundId, this.inspections, this.selectedRows, this.rowBackups);
   }
 
   toggleRepaired(inboundId: number) {
@@ -143,6 +155,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (deletedRows) => {
           this.edit.handleDeleteSuccess(deletedRows, this.inspections, this.selectedRows, this.rowBackups, this.queue);
+          this.paginationInspection.setData(this.inspections);
           this.refreshCurrentTab();
         },
         error: () => {

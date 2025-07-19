@@ -66,6 +66,7 @@ import { environment } from 'src/environments/environment';
         redirect_uri: environment.auth.redirectUri,
         logoutUrl: environment.auth.logoutUrl,
         audience: environment.auth.audience,
+        returnTo: environment.auth.returnTo,
         scope: 'openid profile email'
       }
     }),

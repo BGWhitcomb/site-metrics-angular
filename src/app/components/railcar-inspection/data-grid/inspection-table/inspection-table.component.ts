@@ -15,6 +15,7 @@ export class InspectionTableComponent {
   @Input() selectAll: boolean = false;
   @Input() selectedRows: Set<number> = new Set();
   @Input() pagedState: Pagination<InboundRailcar> | null = null;
+  @Input() inspections$: InboundRailcar[] = [];
 
   loading = false;
 
