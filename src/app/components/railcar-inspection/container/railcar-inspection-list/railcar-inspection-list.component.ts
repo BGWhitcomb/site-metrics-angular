@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { InspectionService } from 'src/app/services/inspection.service';
 import { InboundRailcar, BadOrderedRailcar } from '../../models/inspections';
 import { finalize, Subject, takeUntil, Subscription, map } from 'rxjs';
 import { PaginationService } from '../../data-grid/services/pagination.service';
 import { ToastService } from 'src/app/services/toast.service';
 import { RowEditingService } from '../../data-grid/services/row-editing.service';
 import { ExportService } from '../../data-grid/services/export.service';
+import { InboundRailcarService } from 'src/app/services/inbound-railcar.service';
+import { BadOrderedRailcarService } from 'src/app/services/bad-ordered-railcar.service';
 
 type TabType = 'inspections' | 'bad-orders' | 'all-bad-orders';
 
@@ -23,7 +24,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private inspectionService: InspectionService,
+    private inboundService: InboundRailcarService,
+    private badOrderService: BadOrderedRailcarService,
     public paginationInspection: PaginationService<InboundRailcar>,
     public paginationBadOrders: PaginationService<BadOrderedRailcar>,
     public paginationAllBadOrders: PaginationService<BadOrderedRailcar>,
@@ -64,7 +66,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   resolveBadOrder(row: BadOrderedRailcar, newDate: string): void {
     this.edit.resolveBadOrder(row, newDate).subscribe({
       next: () => {
-        this.paginationBadOrders.setPage(1);
+        this.paginationBadOrders.setData(this.badOrders);
         this.toast.show('Bad order resolved successfully', 'success');
       },
       error: (err) => {
@@ -74,8 +76,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   }
 
   exportBadOrders(): void {
-    this.exp.exportBadOrders(this.edit.badOrders);
-    if (!this.edit.badOrders.length) {
+    this.exp.exportBadOrders(this.badOrders);
+    if (!this.badOrders.length) {
       this.toast.show('No bad orders to export', 'info');
     }
   }
@@ -91,10 +93,10 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   updateBadOrderDate(event: { newDate: string, row: InboundRailcar }): void {
     this.edit.updateBadOrderDate(event.row, event.newDate);
     if (this.activeTab === 'bad-orders') {
-      this.paginationBadOrders.setData(this.edit.badOrders);
+      this.paginationBadOrders.setData(this.badOrders);
     }
     else if (this.activeTab === 'inspections') {
-      this.paginationInspection.setData(this.edit.inspections);
+      this.paginationInspection.setData(this.inspections);
     }
 
   }
@@ -107,8 +109,8 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
     this.edit.toggleSelect(inboundId, this.inspections, this.selectedRows, this.rowBackups);
   }
 
-  onToggleSelectAll(pagedData: InboundRailcar[]) {
-    this.edit.toggleSelectAll(pagedData, this.selectedRows);
+  onToggleSelectAll() {
+    this.edit.toggleSelectAll(this.inspections, this.selectedRows);
     this.paginationInspection.setData(this.inspections);
   }
 
@@ -147,7 +149,20 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   }
 
   saveSelectedRows(): void {
-    this.edit.saveSelectedRows(this.inspections, this.selectedRows, this.rowBackups, this.queue)
+    try {
+      this.edit.saveSelectedRows(this.inspections, this.selectedRows, this.rowBackups, this.queue);
+      // Support editing in bad order tab?
+      switch (this.activeTab) {
+        case 'inspections':
+          this.paginationInspection.setData(this.inspections);
+          break;
+        case 'bad-orders':
+          this.paginationBadOrders.setData(this.badOrders);
+          break;
+      }
+    } catch (err: any) {
+      this.toast.show('Failed to save selected rows: ' + (err?.message || err), 'error');
+    }
   }
 
   deleteSelectedRows(): void {
@@ -156,7 +171,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
         next: (deletedRows) => {
           this.edit.handleDeleteSuccess(deletedRows, this.inspections, this.selectedRows, this.rowBackups, this.queue);
           this.paginationInspection.setData(this.inspections);
-          this.refreshCurrentTab();
+          this.loadDataForActiveTab();
         },
         error: () => {
           this.toast.show('Failed to delete some inspections. Please try again.', 'error');
@@ -171,8 +186,10 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
         this.toast.show('All changes saved successfully', 'success');
         this.edit.inspectionQueue.new = [];
         this.edit.inspectionQueue.modified = [];
-        this.edit.selectedRows.clear();
-        this.refreshCurrentTab();
+        this.selectedRows.clear();
+        this.paginationInspection.setData(this.inspections);
+        this.paginationInspection.setPage(1);
+        this.loadDataForActiveTab();
       },
       error: (error) => {
         this.toast.show('Error saving changes', 'error');
@@ -188,7 +205,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   // --- Data loading ---
   private loadInspections() {
     this.loading = true;
-    this.inspectionService.getInspections()
+    this.inboundService.getInspections()
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loading = false)
@@ -208,7 +225,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   private loadBadOrders() {
     this.loading = true;
-    this.inspectionService.getBadOrders()
+    this.badOrderService.getBadOrders()
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loading = false)
@@ -228,7 +245,7 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
 
   private loadAllBadOrders() {
     this.loading = true;
-    this.inspectionService.getAllBadOrders()
+    this.badOrderService.getAllBadOrders()
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loading = false)
@@ -249,29 +266,12 @@ export class RailcarInspectionListComponent implements OnInit, OnDestroy {
   private loadDataForActiveTab() {
     switch (this.activeTab) {
       case 'inspections':
-        if (this.inspections.length === 0) this.loadInspections();
-        break;
-      case 'bad-orders':
-        if (this.badOrders.length === 0) this.loadBadOrders();
-        break;
-      case 'all-bad-orders':
-        if (this.allBadOrders.length === 0) this.loadAllBadOrders();
-        break;
-    }
-  }
-
-  private refreshCurrentTab() {
-    switch (this.activeTab) {
-      case 'inspections':
-        this.edit.inspections = [];
         this.loadInspections();
         break;
       case 'bad-orders':
-        this.edit.badOrders = [];
         this.loadBadOrders();
         break;
       case 'all-bad-orders':
-        this.edit.badOrders = [];
         this.loadAllBadOrders();
         break;
     }

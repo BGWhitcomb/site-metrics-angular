@@ -3,7 +3,8 @@ import { BehaviorSubject, Observable, EMPTY, finalize, forkJoin, map, of } from 
 import { InboundRailcar, BadOrderedRailcar } from '../../models/inspections';
 import { InspectionQueue, BadOrderQueue } from '../../models/inspection-queue';
 import { ToastService } from 'src/app/services/toast.service';
-import { InspectionService } from 'src/app/services/inspection.service';
+import { InboundRailcarService } from 'src/app/services/inbound-railcar.service';
+import { BadOrderedRailcarService } from 'src/app/services/bad-ordered-railcar.service';
 
 @Injectable({
   providedIn: 'root'
@@ -61,7 +62,7 @@ export class RowEditingService {
   get deletedRows() { return this._deletedRows.value; }
   set deletedRows(val: InboundRailcar[]) { this._deletedRows.next(val); }
 
-  constructor(private toast: ToastService, private inspectionService: InspectionService) { }
+  constructor(private toast: ToastService, private inboundService: InboundRailcarService, private badOrderService: BadOrderedRailcarService) { }
 
   // --- Type Guards ---
   private isInboundRailcar(row: any): row is InboundRailcar {
@@ -325,7 +326,7 @@ export class RowEditingService {
     if (!row.isActive) throw new Error('Cannot resolve a bad order that is not active.');
     row.repairedDate = newDate;
     row.isActive = false;
-    return this.inspectionService.updateBadOrder(row.badOrderId.toString(), row);
+    return this.badOrderService.updateBadOrder(row.badOrderId.toString(), row);
   }
 
   // --- Toggle Logic (InboundRailcar only) ---
@@ -443,7 +444,7 @@ export class RowEditingService {
     }
     const allChanges = [...queue.new, ...queue.modified] as InboundRailcar[];
     this.loading = true;
-    return (this.inspectionService.addInspections(allChanges) as Observable<InboundRailcar[]>)
+    return (this.inboundService.addInspections(allChanges) as Observable<InboundRailcar[]>)
       .pipe(finalize(() => this.loading = false));
   }
 
@@ -463,19 +464,17 @@ export class RowEditingService {
     const toDeleteFromBackend = selectedRowsArray.filter(row => row.inboundId! > 0);
     const toDeleteLocally = selectedRowsArray.filter(row => row.inboundId! < 0);
 
-    const deleteObservables = this.deleteBackendRows(toDeleteFromBackend);
+    const backendIds = toDeleteFromBackend.map(row => row.inboundId!);
 
     this.deleteLocalRows(toDeleteLocally, inspections, selectedRows, rowBackups);
 
-    if (deleteObservables.length > 0) {
-      return forkJoin(deleteObservables).pipe(
-        map(() => selectedRowsArray) // Return the deleted rows
+    if (backendIds.length > 0) {
+      return this.inboundService.deleteInspections(backendIds).pipe(
+        map(() => selectedRowsArray)
       );
     } else {
       return of(selectedRowsArray);
     }
-
-
   }
 
   private getSelectedRows(
@@ -485,14 +484,6 @@ export class RowEditingService {
     return Array.from(selectedRows)
       .map(id => inspections.find(row => row.inboundId === id))
       .filter((row): row is InboundRailcar => row !== undefined);
-  }
-
-  private deleteBackendRows(
-    rows: InboundRailcar[]
-  ): Observable<void>[] {
-    return rows.map(row =>
-      this.inspectionService.deleteInspection(row.inboundId!.toString(), row)
-    );
   }
 
   private deleteLocalRows(
